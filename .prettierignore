@@ -6,3 +6,9 @@ build
 .turbo
 coverage
 packages/database/generated
+
+# pre-existing docs/skills authored outside this monorepo's code style
+.github/
+specs/
+AGENTS.md
+REDME.md

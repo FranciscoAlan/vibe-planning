@@ -24,6 +24,7 @@ npm-debug.log*
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 
 # prisma
 packages/database/generated/
