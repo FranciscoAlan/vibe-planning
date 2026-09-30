@@ -26,7 +26,7 @@
 - `.env.example` por entorno (dev/qa/prod), raíz y por app.
 - Proveedores externos instalados con cliente placeholder (sin lógica funcional): Stripe, Twilio, Resend, `@elastic/elasticsearch`, Firebase Admin (FCM), Cloudinary.
 - Workflows de CI/CD vacíos (`deploy-dev.yml`, `deploy-qa.yml`, `deploy-prod.yml`) solo con nombre y trigger.
-- `.nvmrc` fijado a `24.21.0`.
+- `.nvmrc` fijado a `24.14.0`.
 - Scripts raíz (`dev`, `build`, `lint`, `test`, `format`) vía Turborepo.
 
 **Out of scope (para specs futuras):**
@@ -93,7 +93,7 @@ Convenciones:
 
 ## Implementation plan
 
-1. Inicializar tooling raíz: `package.json`, npm workspaces, `turbo.json`, `.nvmrc` (`24.21.0`), `packages/config` (`eslint-config`, `tsconfig`, `tailwind-config`).
+1. Inicializar tooling raíz: `package.json`, npm workspaces, `turbo.json`, `.nvmrc` (`24.14.0`), `packages/config` (`eslint-config`, `tsconfig`, `tailwind-config`).
 2. Añadir ESLint + Prettier + Husky + lint-staged conectados a los scripts raíz; verificar que `npm run lint` corre limpio.
 3. Scaffold de `packages/shared-types` y `packages/shared-validations` con tipos y esquemas Zod base de `User`/`Tenant`.
 4. Scaffold de `packages/database`: instalar Prisma, definir `schema.prisma` (arriba), correr la migración inicial contra Postgres local.
