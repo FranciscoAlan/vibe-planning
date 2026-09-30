@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  users     User[]
+
+  @@map("tenants")
+}
+
+/// Roles a user can hold within a tenant. A user may hold more than one over time.
+enum UserRole {
+  CLIENT
+  PROVIDER
+  EVENT_PLANNER
+  ADMIN
+
+  @@map("user_role")
+}
+
+/// Login providers supported by the identity module.
+enum AuthProviderType {
+  GOOGLE
+  APPLE
+  FACEBOOK
+  PHONE
+  CREDENTIALS
+
+  @@map("auth_provider_type")
+}
+
+model User {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String         @map("tenant_id") @db.Uuid
+  tenant          Tenant         @relation(fields: [tenantId], references: [id])
+  email           String?        @unique
+  phone           String?        @unique
+  passwordHash    String?        @map("password_hash")
+  role            UserRole       @default(CLIENT)
+  twoFactorSecret String?        @map("two_factor_secret")
+  twoFactorEnabled Boolean       @default(false) @map("two_factor_enabled")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  identities      AuthIdentity[]
+
+  @@index([tenantId, id])
+  @@map("users")
+}
+
+/// Links a user to one of the providers they used to sign in, to prevent duplicate accounts.
+model AuthIdentity {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String           @map("user_id") @db.Uuid
+  user       User             @relation(fields: [userId], references: [id])
+  provider   AuthProviderType
+  providerId String           @map("provider_id")
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@map("auth_identities")
+}
