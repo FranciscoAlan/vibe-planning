@@ -1,0 +1,8 @@
+node_modules
+dist
+build
+.next
+.expo
+.turbo
+coverage
+packages/database/generated
