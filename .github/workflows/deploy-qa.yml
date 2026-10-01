@@ -1,0 +1,6 @@
+name: Deploy QA
+
+on:
+  push:
+    branches:
+      - qa
