@@ -10,7 +10,7 @@
 **In:**
 
 - Monorepo con Turborepo + npm workspaces (uso de `nvm` para Node).
-- `apps/api` (NestJS 11): carpetas de módulos de dominio (`identity`, `directory`, `booking`, `finance`, `search`, `chat`, `admin`) con controladores placeholder, `common/` (filters, guards, interceptors), endpoint `/health`.
+- `apps/api` (NestJS 12, ESM + Vitest): carpetas de módulos de dominio (`identity`, `directory`, `booking`, `finance`, `search`, `chat`, `admin`) con controladores placeholder, `common/` (filters, guards, interceptors), endpoint `/health`.
 - `apps/web` (Next.js 15, App Router): grupos de rutas `(public)/(auth)/(dashboard)/(client)`, Tailwind, página de inicio de arranque.
 - `apps/mobile` (Expo + React Native última estable): `screens/`, `navigation/`, `hooks/`, una pantalla de arranque.
 - `apps/backoffice` (Vite + React última estable): estructura `src/` base, página de arranque.
@@ -20,7 +20,7 @@
 - `packages/config`: `eslint-config`, `tsconfig`, `tailwind-config` compartidos.
 - Módulo `identity` propio: stubs de estrategias Google/Apple/Facebook/teléfono (OTP)/usuario-contraseña, emisión de JWT, stub de 2FA (TOTP), y vinculación de cuentas por número de teléfono para evitar duplicados.
 - Multi-tenancy de schema único con columna `tenant_id` en tablas tenant-scoped, más middleware de resolución de tenant en `api`.
-- Testing: Jest (unit/integration) en `api`/`web`/`backoffice`; Playwright (e2e web).
+- Testing: Vitest (unit/integration) en `api`; Jest (unit/integration) en `web`/`backoffice`; Playwright (e2e web).
 - ESLint + Prettier + Husky + lint-staged.
 - `docker/docker-compose.yml` con Postgres, Redis y Elasticsearch; `docker/init-scripts/` placeholder.
 - `.env.example` por entorno (dev/qa/prod), raíz y por app.
@@ -98,8 +98,8 @@ Convenciones:
 3. Scaffold de `packages/shared-types` y `packages/shared-validations` con tipos y esquemas Zod base de `User`/`Tenant`.
 4. Scaffold de `packages/database`: instalar Prisma, definir `schema.prisma` (arriba), correr la migración inicial contra Postgres local.
 5. Crear `docker/docker-compose.yml` (Postgres, Redis, Elasticsearch) y `docker/init-scripts/`; verificar que `docker compose up -d` deja los tres servicios healthy.
-6. Scaffold de `apps/api` (NestJS 11): carpetas de los 7 módulos de dominio con controlador placeholder, `common/`, y `/health` conectado a Prisma.
-7. Añadir el esqueleto del módulo `identity`: stubs de estrategias Passport (Google/Apple/Facebook/teléfono-OTP/credenciales), emisión de JWT, stub de 2FA, middleware de resolución de tenant.
+6. Scaffold de `apps/api` (NestJS 12, ESM + Vitest): carpetas de los 7 módulos de dominio con controlador placeholder, `common/`, y `/health` conectado a Prisma.
+7. Añadir el esqueleto del módulo `identity`: stubs de estrategias Passport (Google/Apple/Facebook/teléfono-OTP/credenciales), emisión de JWT, stub de 2FA, middleware de resolución de tenant. _(hecho: `@nestjs/jwt`+`@nestjs/passport`, 2FA TOTP funcional vía `otplib@12`, `TenantMiddleware` global por header `x-tenant-id`)_
 8. Instalar SDKs de terceros en `apps/api` con clientes placeholder y config por variables de entorno: Stripe, Twilio, Resend, `@elastic/elasticsearch`, Firebase Admin, Cloudinary.
 9. Configurar Jest en `apps/api` con una prueba pasante para `/health`.
 10. Scaffold de `apps/web` (Next.js 15): grupos de rutas, Tailwind, página de inicio usando el `Button` de `packages/ui`; configurar Playwright con un smoke test.
@@ -111,20 +111,20 @@ Convenciones:
 
 ## Acceptance criteria
 
-- [ ] `.nvmrc` fija Node `24.14.0` y `nvm use` lo respeta.
-- [ ] `npm install` en la raíz instala todos los workspaces sin errores.
-- [ ] `npm run lint` pasa sin errores en todas las apps y paquetes.
-- [ ] El hook de pre-commit de Husky bloquea un commit con un error de lint.
-- [ ] `docker compose -f docker/docker-compose.yml up -d` levanta Postgres, Redis y Elasticsearch como contenedores healthy.
-- [ ] `npx prisma migrate dev` (en `packages/database`) aplica la migración inicial creando las tablas `tenants`, `users` y `auth_identities` con columna `tenant_id` en las tablas tenant-scoped.
-- [ ] `apps/api` expone `GET /health` devolviendo 200 con verificación de conectividad a la base de datos.
-- [ ] Los 7 módulos NestJS (`identity`, `directory`, `booking`, `finance`, `search`, `chat`, `admin`) existen con un controlador placeholder accesible por HTTP.
-- [ ] `npm run test` corre Jest en `api`/`web`/`backoffice` con al menos una prueba pasante por app.
+- [x] `.nvmrc` fija Node `24.14.0` y `nvm use` lo respeta.
+- [x] `npm install` en la raíz instala todos los workspaces sin errores.
+- [x] `npm run lint` pasa sin errores en todas las apps y paquetes.
+- [x] El hook de pre-commit de Husky bloquea un commit con un error de lint.
+- [ ] `docker compose -f docker/docker-compose.yml up -d` levanta Postgres, Redis y Elasticsearch como contenedores healthy. _(pendiente: Docker no disponible en este entorno; el usuario debe validarlo localmente)_
+- [x] `npx prisma migrate diff` genera la migración inicial creando las tablas `tenants`, `users` y `auth_identities` con columna `tenant_id` en las tablas tenant-scoped. _(generada sin DB viva; `migrate dev` real queda pendiente de validar con Docker)_
+- [ ] `apps/api` expone `GET /health` devolviendo 200 con verificación de conectividad a la base de datos. _(implementado; falta validar contra Postgres real)_
+- [x] Los 7 módulos NestJS (`identity`, `directory`, `booking`, `finance`, `search`, `chat`, `admin`) existen con un controlador placeholder; build y lint pasan (accesibilidad por HTTP en vivo pendiente de validar con Docker).
+- [ ] `npm run test` corre Vitest en `api` (hecho) y Jest en `web`/`backoffice` (pendiente, apps aún no creadas) con al menos una prueba pasante por app.
 - [ ] `npx playwright test` corre al menos un smoke test e2e pasante contra `apps/web`.
 - [ ] `apps/web`, `apps/mobile` y `apps/backoffice` arrancan localmente (`npm run dev`) y renderizan una pantalla/página de arranque sin errores de consola.
 - [ ] Existen placeholders de variables de entorno para Stripe, Twilio, Resend, Elasticsearch, Firebase y Cloudinary en `.env.example`.
 - [ ] `.github/workflows/deploy-dev.yml`, `deploy-qa.yml` y `deploy-prod.yml` existen solo con nombre/trigger, sin pasos de ejecución.
-- [ ] `npm run build` termina exitosamente para todas las apps y paquetes vía Turborepo.
+- [ ] `npm run build` termina exitosamente para todas las apps y paquetes vía Turborepo (verificado para `shared-types`, `shared-validations`, `database`, `api`; faltan `web`/`mobile`/`backoffice`).
 
 ## Decisions
 
@@ -138,6 +138,9 @@ Convenciones:
 - **Sí:** instalar las últimas versiones estables mediante los comandos oficiales de cada herramienta (NestJS 11, Next.js 15, Expo SDK vigente, Vite+React vigente) en vez de fijar versiones exactas en la spec.
 - **No:** lógica de pipelines de CI/CD (pasos de build/test/deploy) — solo archivos de workflow vacíos; los pipelines completos son una spec futura.
 - **No:** e2e de mobile (Detox) — no hay pantallas con lógica real que probar todavía.
+- **Sí:** ESM + Vitest en `apps/api` en vez de CJS + Jest — `@nestjs/testing@12` se publica solo como ESM (`"type": "module"`, sin build CJS), por lo que Jest en modo CommonJS no puede cargarlo. Es el toolchain por defecto del generador de Nest 12. `web`/`backoffice` siguen con Jest ya que no tienen ese problema.
+- **Sí:** reemplazar `oxlint` (default del generador de Nest 12) por el ESLint compartido de `packages/config/eslint-config` en `apps/api` — mantiene un solo linter en todo el monorepo.
+- **No:** `@nestjs/mau` (CLI de deploy propietaria de Nest) — traía una cadena de vulnerabilidades altas (`undici`, `tmp`, `inquirer`) y no la usamos; el despliegue va por Bicep/Terraform propios en specs futuras.
 - **No:** flujos OAuth funcionales para Google/Apple/Facebook — solo stubs de estrategia; las credenciales y flujos reales pertenecen a la spec de `identity`.
 
 ## Risks
