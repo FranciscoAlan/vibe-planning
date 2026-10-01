@@ -17,8 +17,7 @@ import { PhoneOtpStrategy } from './strategies/phone-otp.strategy.js';
     JwtModule.register({
       secret: process.env.JWT_SECRET ?? 'dev-only-placeholder-secret',
       signOptions: {
-        expiresIn: (process.env.JWT_EXPIRES_IN ??
-          '1h') as `${number}${'s' | 'm' | 'h' | 'd'}`,
+        expiresIn: (process.env.JWT_EXPIRES_IN ?? '1h') as `${number}${'s' | 'm' | 'h' | 'd'}`,
       },
     }),
   ],

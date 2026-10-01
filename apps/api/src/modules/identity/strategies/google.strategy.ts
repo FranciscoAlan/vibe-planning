@@ -10,17 +10,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientID: process.env.GOOGLE_CLIENT_ID ?? 'placeholder',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? 'placeholder',
       callbackURL:
-        process.env.GOOGLE_CALLBACK_URL ??
-        'http://localhost:3000/identity/google/callback',
+        process.env.GOOGLE_CALLBACK_URL ?? 'http://localhost:3000/identity/google/callback',
       scope: ['email', 'profile'],
     });
   }
 
-  validate(
-    _accessToken: string,
-    _refreshToken: string,
-    profile: unknown,
-  ): unknown {
+  validate(_accessToken: string, _refreshToken: string, profile: unknown): unknown {
     return profile;
   }
 }

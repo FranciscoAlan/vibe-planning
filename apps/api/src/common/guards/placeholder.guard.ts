@@ -7,9 +7,7 @@ import { Observable } from 'rxjs';
  */
 @Injectable()
 export class PlaceholderGuard implements CanActivate {
-  canActivate(
-    _context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
+  canActivate(_context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
     return true;
   }
 }

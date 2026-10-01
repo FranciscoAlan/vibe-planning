@@ -7,10 +7,7 @@ import { Strategy } from 'passport-local';
  * Stub: password hash comparison is wired once the `User` repository exists.
  */
 @Injectable()
-export class CredentialsStrategy extends PassportStrategy(
-  Strategy,
-  'credentials',
-) {
+export class CredentialsStrategy extends PassportStrategy(Strategy, 'credentials') {
   constructor() {
     super({ usernameField: 'email', passwordField: 'password' });
   }

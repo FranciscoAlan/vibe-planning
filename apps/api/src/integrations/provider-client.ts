@@ -1,6 +1,4 @@
-export type ProviderConfiguration = Readonly<
-  Record<string, string | undefined>
->;
+export type ProviderConfiguration = Readonly<Record<string, string | undefined>>;
 
 export abstract class ProviderClient {
   protected constructor(
