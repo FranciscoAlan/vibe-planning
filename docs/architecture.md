@@ -9,7 +9,7 @@ Este documento refleja el estado real del monorepo a medida que se implementa [S
 | Monorepo             | Turborepo + npm workspaces                                                | `npm@11.9.0`                                                                                                               |
 | Node                 | `.nvmrc` → `24.14.0`                                                      |                                                                                                                            |
 | Backend (`apps/api`) | NestJS **12** (ESM + Vitest)                                              | El generador cambió sus defaults; `@nestjs/testing@12` es ESM-only, por eso no se usó CJS+Jest. Ver Decisiones en la spec. |
-| Linter               | ESLint 9 (flat config) compartido vía `packages/config/eslint-config`     | Reemplaza a `oxlint` (default de Nest 12) para mantener un solo linter en todo el repo                                     |
+| Linter               | ESLint 10 (flat config) compartido vía `packages/config/eslint-config`    | Reemplaza a `oxlint` (default de Nest 12) para mantener un solo linter en todo el repo                                     |
 | Formateo             | Prettier + `.editorconfig` + `files.eol: "\n"` en `.vscode/settings.json` | Line endings normalizados con `.gitattributes` (`eol=lf`)                                                                  |
 | ORM                  | Prisma 6                                                                  | `packages/database`                                                                                                        |
 | DB local             | Postgres 17, Redis 7, Elasticsearch 8.16 vía `docker/docker-compose.yml`  | No verificado en este entorno (sin Docker disponible)                                                                      |
@@ -35,6 +35,9 @@ packages/
   ui/                    # Button compartido para apps web
 docker/
   docker-compose.yml     # Postgres, Redis, Elasticsearch
+README.md                 # Setup, commands and current validation status
+\.env.example             # Root environment variable template
+.github/workflows/        # Empty dev, QA and production workflow triggers
 specs/
   01-arquitectura-scaffolding-monorepo.md
 ```
@@ -92,6 +95,22 @@ specs/
 ### `packages/ui`
 
 - `@vibe-planners/ui` exporta el `Button` compartido que consume la app web.
+
+## Tooling and environment configuration
+
+- The root scripts in `package.json` run `dev`, `build`, `lint`, `test` and `format` through Turborepo.
+- Environment templates exist at the root and in `apps/api`, `apps/web`, `apps/backoffice` and `apps/mobile`; the database package also has a database-specific template. They contain placeholders for development, QA and production values, including database, Redis, Elasticsearch, JWT and external providers.
+- `.github/workflows/deploy-dev.yml`, `deploy-qa.yml` and `deploy-prod.yml` currently contain only a workflow name and a branch push trigger. They intentionally have no build, test or deploy jobs yet.
+- TypeScript incremental metadata (`*.tsbuildinfo`), build output, caches, coverage and local environment files are excluded through `.gitignore`.
+
+The verified root commands are:
+
+```text
+npm run lint -- --ui=stream   # 8 Turborepo tasks successful
+npm run build                 # 5 Turborepo tasks successful
+```
+
+API Vitest, backoffice Jest and the web Playwright smoke test also pass. The web Jest unit test and Docker-dependent checks remain pending.
 
 ## Pendiente de validación local (requiere Docker, no disponible en este entorno)
 
