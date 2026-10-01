@@ -10,6 +10,7 @@ import { SearchModule } from './modules/search/search.module.js';
 import { ChatModule } from './modules/chat/chat.module.js';
 import { AdminModule } from './modules/admin/admin.module.js';
 import { TenantMiddleware } from './common/middleware/tenant.middleware.js';
+import { IntegrationsModule } from './integrations/integrations.module.js';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { TenantMiddleware } from './common/middleware/tenant.middleware.js';
     SearchModule,
     ChatModule,
     AdminModule,
+    IntegrationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

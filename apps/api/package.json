@@ -21,6 +21,7 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts"
   },
   "dependencies": {
+    "@elastic/elasticsearch": "^9.5.1",
     "@nestjs/common": "^12.0.1",
     "@nestjs/core": "^12.0.1",
     "@nestjs/jwt": "^12.0.2",
@@ -30,6 +31,8 @@
     "@vibe-planners/shared-types": "*",
     "@vibe-planners/shared-validations": "*",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.11.0",
+    "firebase-admin": "^14.5.0",
     "otplib": "^12.0.1",
     "passport": "^0.7.0",
     "passport-facebook": "^3.0.0",
@@ -37,7 +40,10 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "resend": "^6.31.0",
+    "rxjs": "^7.8.1",
+    "stripe": "^22.6.2",
+    "twilio": "^6.1.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^12.0.0",
