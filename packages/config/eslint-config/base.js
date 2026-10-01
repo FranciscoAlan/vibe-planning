@@ -17,7 +17,7 @@ module.exports = tseslint.config(
   },
   {
     // Node-authored config files (this monorepo's *.config.js, packages/config/**) use CommonJS.
-    files: ["**/*.config.js", "packages/config/**/*.js"],
+    files: ["**/*.config.js", "**/*.config.cjs", "packages/config/**/*.js"],
     languageOptions: {
       sourceType: "commonjs",
       globals: globals.node,
