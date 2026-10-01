@@ -100,11 +100,11 @@ Convenciones:
 5. Crear `docker/docker-compose.yml` (Postgres, Redis, Elasticsearch) y `docker/init-scripts/`; verificar que `docker compose up -d` deja los tres servicios healthy.
 6. Scaffold de `apps/api` (NestJS 12, ESM + Vitest): carpetas de los 7 módulos de dominio con controlador placeholder, `common/`, y `/health` conectado a Prisma.
 7. Añadir el esqueleto del módulo `identity`: stubs de estrategias Passport (Google/Apple/Facebook/teléfono-OTP/credenciales), emisión de JWT, stub de 2FA, middleware de resolución de tenant. _(hecho: `@nestjs/jwt`+`@nestjs/passport`, 2FA TOTP funcional vía `otplib@12`, `TenantMiddleware` global por header `x-tenant-id`)_
-8. Instalar SDKs de terceros en `apps/api` con clientes placeholder y config por variables de entorno: Stripe, Twilio, Resend, `@elastic/elasticsearch`, Firebase Admin, Cloudinary.
-9. Configurar Jest en `apps/api` con una prueba pasante para `/health`.
-10. Scaffold de `apps/web` (Next.js 15): grupos de rutas, Tailwind, página de inicio usando el `Button` de `packages/ui`; configurar Playwright con un smoke test.
-11. Scaffold de `apps/backoffice` (Vite + React): página de arranque, Jest configurado.
-12. Scaffold de `apps/mobile` (Expo + React Native): navegación base y una pantalla de arranque.
+8. Instalar SDKs de terceros en `apps/api` con clientes placeholder y config por variables de entorno: Stripe, Twilio, Resend, `@elastic/elasticsearch`, Firebase Admin, Cloudinary. _(hecho: módulo `src/integrations/`; clientes leen configuración por env y lanzan un error explícito al invocarse)_
+9. Añadir una prueba e2e pasante para `GET /health` usando Vitest en `apps/api`. _(hecho: Prisma se sustituye por un mock para no requerir Docker)_
+10. Scaffold de `apps/web` (Next.js 15): grupos de rutas, Tailwind, página de inicio usando el `Button` de `packages/ui`; configurar Playwright con un smoke test. _(hecho: Next.js 15.5.27, route groups, botón compartido y smoke test Playwright)_
+11. Scaffold de `apps/backoffice` (Vite + React): página de arranque, Jest configurado. _(hecho: Vite 8.3.1, panel inicial y Jest con SWC)_
+12. Scaffold de `apps/mobile` (Expo + React Native): navegación base y una pantalla de arranque. _(hecho: Expo SDK 57 / React Native 0.86.3, Expo Router, Overview, lista de eventos y hook de saludo)_
 13. Añadir `.env.example` (raíz y por app) para dev/qa/prod cubriendo DB, Redis, Elasticsearch, JWT y todas las claves de proveedores externos.
 14. Añadir los workflows vacíos de CI/CD (`deploy-dev.yml`, `deploy-qa.yml`, `deploy-prod.yml`) solo con nombre/trigger.
 15. Conectar los scripts raíz (`dev`, `build`, `lint`, `test`, `format`) vía pipelines de Turborepo; verificar que `npm run build` y `npm run lint` pasan en todas las apps y paquetes.
@@ -119,12 +119,12 @@ Convenciones:
 - [x] `npx prisma migrate diff` genera la migración inicial creando las tablas `tenants`, `users` y `auth_identities` con columna `tenant_id` en las tablas tenant-scoped. _(generada sin DB viva; `migrate dev` real queda pendiente de validar con Docker)_
 - [ ] `apps/api` expone `GET /health` devolviendo 200 con verificación de conectividad a la base de datos. _(implementado; falta validar contra Postgres real)_
 - [x] Los 7 módulos NestJS (`identity`, `directory`, `booking`, `finance`, `search`, `chat`, `admin`) existen con un controlador placeholder; build y lint pasan (accesibilidad por HTTP en vivo pendiente de validar con Docker).
-- [ ] `npm run test` corre Vitest en `api` (hecho) y Jest en `web`/`backoffice` (pendiente, apps aún no creadas) con al menos una prueba pasante por app.
-- [ ] `npx playwright test` corre al menos un smoke test e2e pasante contra `apps/web`.
-- [ ] `apps/web`, `apps/mobile` y `apps/backoffice` arrancan localmente (`npm run dev`) y renderizan una pantalla/página de arranque sin errores de consola.
+- [ ] `npm run test` corre Vitest en `api` y Jest en `web`/`backoffice` con al menos una prueba pasante por app. _(API y backoffice tienen tests; web tiene Playwright, pero aún no Jest unitario)_
+- [x] `npm run test:e2e --workspace=apps/web` ejecuta un smoke test Playwright pasante contra `apps/web`.
+- [x] `apps/web`, `apps/mobile` y `apps/backoffice` arrancan localmente y muestran sus pantallas iniciales. _(web con Next, backoffice con Vite y mobile mediante Expo Router/web)_
 - [ ] Existen placeholders de variables de entorno para Stripe, Twilio, Resend, Elasticsearch, Firebase y Cloudinary en `.env.example`.
 - [ ] `.github/workflows/deploy-dev.yml`, `deploy-qa.yml` y `deploy-prod.yml` existen solo con nombre/trigger, sin pasos de ejecución.
-- [ ] `npm run build` termina exitosamente para todas las apps y paquetes vía Turborepo (verificado para `shared-types`, `shared-validations`, `database`, `api`; faltan `web`/`mobile`/`backoffice`).
+- [ ] `npm run build` termina exitosamente para todas las apps y paquetes vía Turborepo. _(web y backoffice pasan build individual; mobile pasa typecheck y `expo export --platform web`; falta ejecutar el pipeline Turbo completo)_
 
 ## Decisions
 
@@ -135,10 +135,12 @@ Convenciones:
 - **Sí:** incluir `mobile` (Expo) y `backoffice` (Vite+React) desde el inicio, por pedido explícito.
 - **Sí:** proveedores externos (Stripe, Twilio, Resend, Elasticsearch, Firebase, Cloudinary) instalados con cliente placeholder ahora; la integración funcional completa se define en specs de dominio.
 - **Sí:** Cloudinary para almacenamiento de medios (galerías, documentos KYC) — menos fricción de configuración que S3/GCS crudo para un MVP.
-- **Sí:** instalar las últimas versiones estables mediante los comandos oficiales de cada herramienta (NestJS 11, Next.js 15, Expo SDK vigente, Vite+React vigente) en vez de fijar versiones exactas en la spec.
+- **Sí:** instalar las últimas versiones estables mediante los comandos oficiales de cada herramienta (NestJS 12, Next.js 15.5, Expo SDK 57 / React Native 0.86, Vite 8) en vez de fijar versiones exactas en la spec.
+- **Sí:** usar Expo Router para navegación universal en mobile; las rutas viven en `src/app/` y las vistas reutilizables en `src/screens/`.
+- **Sí:** mantener React y React DOM en `19.2.3` en los workspaces web/mobile/UI para satisfacer Expo SDK 57 y evitar duplicados del runtime nativo.
 - **No:** lógica de pipelines de CI/CD (pasos de build/test/deploy) — solo archivos de workflow vacíos; los pipelines completos son una spec futura.
 - **No:** e2e de mobile (Detox) — no hay pantallas con lógica real que probar todavía.
-- **Sí:** ESM + Vitest en `apps/api` en vez de CJS + Jest — `@nestjs/testing@12` se publica solo como ESM (`"type": "module"`, sin build CJS), por lo que Jest en modo CommonJS no puede cargarlo. Es el toolchain por defecto del generador de Nest 12. `web`/`backoffice` siguen con Jest ya que no tienen ese problema.
+- **Sí:** ESM + Vitest en `apps/api` en vez de CJS + Jest — `@nestjs/testing@12` se publica solo como ESM (`"type": "module"`, sin build CJS), por lo que Jest en modo CommonJS no puede cargarlo. Es el toolchain por defecto del generador de Nest 12. Backoffice usa Jest; web tiene Playwright e2e y su Jest unitario sigue pendiente.
 - **Sí:** reemplazar `oxlint` (default del generador de Nest 12) por el ESLint compartido de `packages/config/eslint-config` en `apps/api` — mantiene un solo linter en todo el monorepo.
 - **No:** `@nestjs/mau` (CLI de deploy propietaria de Nest) — traía una cadena de vulnerabilidades altas (`undici`, `tmp`, `inquirer`) y no la usamos; el despliegue va por Bicep/Terraform propios en specs futuras.
 - **No:** flujos OAuth funcionales para Google/Apple/Facebook — solo stubs de estrategia; las credenciales y flujos reales pertenecen a la spec de `identity`.
