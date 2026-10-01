@@ -9,11 +9,12 @@ datasource db {
 }
 
 model Tenant {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
   users     User[]
+  listings  Listing[]
 
   @@map("tenants")
 }
@@ -52,6 +53,7 @@ model User {
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
   identities      AuthIdentity[]
+  listings        Listing[]
 
   @@index([tenantId, id])
   @@map("users")
@@ -69,4 +71,151 @@ model AuthIdentity {
   @@unique([provider, providerId])
   @@index([userId])
   @@map("auth_identities")
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  SUSPENDED
+  ARCHIVED
+
+  @@map("listing_status")
+}
+
+enum PriceUnit {
+  PER_EVENT
+  PER_HOUR
+  PER_PERSON
+  PER_DAY
+
+  @@map("price_unit")
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+
+  @@map("discount_type")
+}
+
+model Category {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  slug          String        @unique
+  description   String?
+  icon          String?
+  sortOrder     Int           @default(0) @map("sort_order")
+  isActive      Boolean       @default(true) @map("is_active")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  subcategories Subcategory[]
+  listings      Listing[]
+
+  @@map("categories")
+}
+
+model Subcategory {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryId  String    @map("category_id") @db.Uuid
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String    @unique
+  description String?
+  sortOrder   Int       @default(0) @map("sort_order")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  listings    Listing[]
+
+  @@index([categoryId])
+  @@map("subcategories")
+}
+
+model Listing {
+  id                 String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String             @map("tenant_id") @db.Uuid
+  tenant             Tenant             @relation(fields: [tenantId], references: [id])
+  ownerId            String             @map("owner_id") @db.Uuid
+  owner              User               @relation(fields: [ownerId], references: [id])
+  categoryId         String             @map("category_id") @db.Uuid
+  category           Category           @relation(fields: [categoryId], references: [id])
+  subcategoryId      String             @map("subcategory_id") @db.Uuid
+  subcategory        Subcategory        @relation(fields: [subcategoryId], references: [id])
+
+  title              String
+  slug               String
+  description        String
+  status             ListingStatus      @default(DRAFT)
+
+  // Ubicación y cobertura
+  city               String
+  state              String
+  country            String             @default("MEX")
+  address            String?
+  latitude           Float?
+  longitude          Float?
+
+  // Estructura de Precios (Híbrida)
+  basePrice          Decimal            @map("base_price") @db.Decimal(12, 2)
+  currency           String             @default("MXN")
+  priceUnit          PriceUnit          @default(PER_EVENT) @map("price_unit")
+  pricingRules       Json?              @map("pricing_rules")
+
+  // Capacidades y logística
+  minGuests          Int?               @map("min_guests")
+  maxGuests          Int?               @map("max_guests")
+  leadTimeHours      Int                @default(48) @map("lead_time_hours")
+  cancellationPolicy String?            @map("cancellation_policy")
+  serviceRules       String?            @map("service_rules")
+
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  media              ListingMedia[]
+  promotions         ListingPromotion[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, id])
+  @@index([tenantId, categoryId, subcategoryId])
+  @@index([tenantId, status])
+  @@index([city, state])
+  @@map("listings")
+}
+
+model ListingPromotion {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId       String        @map("listing_id") @db.Uuid
+  listing         Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  title           String
+  description     String?
+  code            String?
+  discountType    DiscountType  @default(PERCENTAGE) @map("discount_type")
+  discountValue   Decimal       @map("discount_value") @db.Decimal(12, 2)
+  startDate       DateTime      @map("start_date")
+  endDate         DateTime      @map("end_date")
+  maxRedemptions  Int?          @map("max_redemptions")
+  redemptionCount Int           @default(0) @map("redemption_count")
+  isActive        Boolean       @default(true) @map("is_active")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  @@index([listingId])
+  @@index([code])
+  @@map("listing_promotions")
+}
+
+model ListingMedia {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listingId String   @map("listing_id") @db.Uuid
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url       String
+  publicId  String   @map("public_id")
+  mediaType String   @default("image") @map("media_type")
+  sortOrder Int      @default(0) @map("sort_order")
+  isCover   Boolean  @default(false) @map("is_cover")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([listingId])
+  @@map("listing_media")
 }
