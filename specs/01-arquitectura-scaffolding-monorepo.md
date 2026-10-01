@@ -1,13 +1,13 @@
 # SPEC 01 — Arquitectura y scaffolding del monorepo
 
-> **Estado:** Aceptado
+> **Estado:** Aprobado
 > **Depende de:** Ninguna
 > **Fecha:** 2026-09-30
-> **Objetivo:** Generar por script el monorepo base de Vibe Planners (apps, paquetes compartidos, base de datos, identidad, multi-tenancy, testing, tooling y placeholders de proveedores externos) sin implementar lógica de negocio.
+> **Objetivo:** Generate via script the base monorepo of Vibe Planners (apps, shared packages, database, identity, multi-tenancy, testing, tooling, and placeholders for external providers) without implementing business logic.
 
 ## Scope
 
-**In:**
+**In scope:**
 
 - Monorepo con Turborepo + npm workspaces (uso de `nvm` para Node).
 - `apps/api` (NestJS 12, ESM + Vitest): carpetas de módulos de dominio (`identity`, `directory`, `booking`, `finance`, `search`, `chat`, `admin`) con controladores placeholder, `common/` (filters, guards, interceptors), endpoint `/health`.
@@ -29,7 +29,7 @@
 - `.nvmrc` fijado a `24.14.0`.
 - Scripts raíz (`dev`, `build`, `lint`, `test`, `format`) vía Turborepo.
 
-**Out of scope (para specs futuras):**
+**Out of scope (for future specs):**
 
 - Lógica de negocio de booking, pagos, búsqueda/ranking, chat, admin, recompensas, mercado, etc.
 - Integración funcional real de los proveedores externos (llamadas de API reales, webhooks).
