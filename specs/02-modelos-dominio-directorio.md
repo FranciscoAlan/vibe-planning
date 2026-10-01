@@ -1,6 +1,6 @@
 # SPEC 02 — Modelos de dominio y contratos de Directorio y Publicaciones
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 01
 > **Fecha:** 2026-09-30
 > **Objetivo:** Definir el modelo de datos relacional de Directorio y Publicaciones en Prisma con seeder de catálogos base para México, tipos compartidos, esquemas de validación Zod y endpoints de consulta activos en la API.
@@ -212,18 +212,18 @@ model ListingMedia {
 
 ## Acceptance criteria
 
-- [ ] `packages/database/prisma/schema.prisma` contiene los modelos `Category`, `Subcategory`, `Listing`, `ListingMedia`, `ListingPromotion` y sus enums correspondientes.
-- [ ] La migración de Prisma se genera limpiamente y el cliente de base de datos compila sin errores de tipos.
-- [ ] `packages/database/prisma/seed.ts` ejecuta e inserta las 10 categorías principales con sus subcategorías.
-- [ ] `packages/shared-types` exporta `ICategory`, `ISubcategory`, `IListing`, `IListingMedia`, `IListingPromotion`, `ListingStatus`, `PriceUnit` y `DiscountType`.
-- [ ] `packages/shared-validations` exporta `createListingSchema`, `updateListingSchema`, `createPromotionSchema` y `listingFilterSchema`, bloqueando payloads inválidos.
-- [ ] `GET /directory/categories` responde `200` con la lista de categorías y sus subcategorías asociadas.
-- [ ] `GET /directory/listings` responde `200` con paginación y permite filtrar por `categoryId`, `subcategoryId`, `city`, rango de precios y si tiene promociones activas.
-- [ ] `GET /directory/listings/:id` responde `200` con el detalle, galería y promociones vigentes, o `404` si la publicación no existe.
-- [ ] `POST /directory/listings` valida el body contra el schema Zod y retorna `201` con la publicación creada asociada al tenant actual.
-- [ ] `POST /directory/listings/:id/promotions` valida y crea una promoción asociada a la publicación.
-- [ ] Las pruebas de Vitest para el módulo `directory` pasan exitosamente (`npm run test --workspace=apps/api`).
-- [ ] `npm run lint` y `npm run build` pasan exitosamente en todos los paquetes y apps del monorepo.
+- [x] `packages/database/prisma/schema.prisma` contiene los modelos `Category`, `Subcategory`, `Listing`, `ListingMedia`, `ListingPromotion` y sus enums correspondientes.
+- [x] La migración de Prisma se genera limpiamente y el cliente de base de datos compila sin errores de tipos.
+- [x] `packages/database/prisma/seed.ts` ejecuta e inserta las 10 categorías principales con sus subcategorías.
+- [x] `packages/shared-types` exporta `ICategory`, `ISubcategory`, `IListing`, `IListingMedia`, `IListingPromotion`, `ListingStatus`, `PriceUnit` y `DiscountType`.
+- [x] `packages/shared-validations` exporta `createListingSchema`, `updateListingSchema`, `createPromotionSchema` y `listingFilterSchema`, bloqueando payloads inválidos.
+- [x] `GET /directory/categories` responde `200` con la lista de categorías y sus subcategorías asociadas.
+- [x] `GET /directory/listings` responde `200` con paginación y permite filtrar por `categoryId`, `subcategoryId`, `city`, rango de precios y si tiene promociones activas.
+- [x] `GET /directory/listings/:id` responde `200` con el detalle, galería y promociones vigentes, o `404` si la publicación no existe.
+- [x] `POST /directory/listings` valida el body contra el schema Zod y retorna `201` con la publicación creada asociada al tenant actual.
+- [x] `POST /directory/listings/:id/promotions` valida y crea una promoción asociada a la publicación.
+- [x] Las pruebas de Vitest para el módulo `directory` pasan exitosamente (`npm run test --workspace=apps/api`).
+- [x] `npm run lint` y `npm run build` pasan exitosamente en todos los paquetes y apps del monorepo.
 
 ---
 

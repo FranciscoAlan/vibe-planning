@@ -200,7 +200,8 @@ export class DirectoryService {
   async updateListing(id: string, tenantId: string, data: UpdateListingInput) {
     await this.getListingById(id, tenantId);
 
-    const { media: _media, pricingRules, ...updateData } = data;
+    const { media, pricingRules, ...updateData } = data;
+    void media;
 
     return this.prisma.listing.update({
       where: { id },
