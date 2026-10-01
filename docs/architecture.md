@@ -43,6 +43,16 @@ Aún no existen `apps/web`, `apps/mobile`, `apps/backoffice`, `packages/ui` (pas
 - **`src/health/`:** `GET /health` corre `SELECT 1` vía Prisma (`common/prisma/prisma.service.ts`) y responde `200`/`503` según conectividad a la DB.
 - **Dependencia:** `@vibe-planners/database` (workspace) para el cliente Prisma.
 
+### Módulo `identity` (Paso 7)
+
+- **JWT:** `@nestjs/jwt` registrado con `JWT_SECRET`/`JWT_EXPIRES_IN` por variable de entorno (default `dev-only-placeholder-secret` / `1h`). `IdentityService.issueToken()` firma el payload `{ sub, tenantId, role }`.
+- **Estrategias Passport:** `credentials` (email/password, stub — `validate()` lanza `UnauthorizedException`), `jwt` (Bearer token real, usada por `JwtAuthGuard`), `google`/`facebook` (passport-google-oauth20/passport-facebook configuradas con client ID/secret/callback por env var, `validate()` devuelve el profile sin persistir nada).
+- **`apple`/`phone-otp`:** clases simples (no Passport strategies, no hay librería madura para Sign in with Apple ni OTP por teléfono) cuyos métodos lanzan `Error('... not implemented yet')`. Flujo real queda para la spec de `identity`.
+- **2FA:** `TwoFactorService` usa `otplib@^12` (TOTP) — `generateSecret()`/`verifyCode()`, sin persistencia todavía. **Nota:** `otplib@13` reescribió la API (quitó `authenticator` simple a favor de clases `TOTP`/`HOTP` con plugins de crypto); se fijó la versión en `12.x` por compatibilidad.
+- **Endpoints (`/identity/*`):** `register`, `register/provider`, `login`, `2fa/verify` — todos devuelven `501` pero validan el body contra los schemas Zod de `@vibe-planners/shared-validations`.
+- **`TenantMiddleware`:** aplicado global en `AppModule` (`implements NestModule`), lee el header `x-tenant-id` y lo expone en `req.tenantId`. Placeholder hasta que se diseñe la resolución real por subdominio/dominio en `directory`/`admin`.
+- **Test funcional:** `two-factor.service.spec.ts` genera un secreto, produce un código TOTP válido con `otplib` y confirma que `verifyCode` lo acepta y rechaza un código inválido.
+
 ## Pendiente de validación local (requiere Docker, no disponible en este entorno)
 
 - `docker compose -f docker/docker-compose.yml up -d` — levantar Postgres/Redis/Elasticsearch.
