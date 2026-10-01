@@ -1,6 +1,6 @@
 # Arquitectura — Vibe Planners
 
-Este documento refleja el estado real del monorepo a medida que se implementa [SPEC 01](../specs/01-arquitectura-scaffolding-monorepo.md). Se actualiza conforme avanza la implementación, no es un documento de diseño aspiracional.
+Este documento refleja el estado real del monorepo a medida que se implementan [SPEC 01](../specs/01-arquitectura-scaffolding-monorepo.md) y [SPEC 02](../specs/02-modelos-dominio-directorio.md). Se actualiza conforme avanza la implementación, no es un documento de diseño aspiracional.
 
 ## Stack y versiones reales instaladas
 
@@ -11,7 +11,7 @@ Este documento refleja el estado real del monorepo a medida que se implementa [S
 | Backend (`apps/api`) | NestJS **12** (ESM + Vitest)                                              | El generador cambió sus defaults; `@nestjs/testing@12` es ESM-only, por eso no se usó CJS+Jest. Ver Decisiones en la spec. |
 | Linter               | ESLint 10 (flat config) compartido vía `packages/config/eslint-config`    | Reemplaza a `oxlint` (default de Nest 12) para mantener un solo linter en todo el repo                                     |
 | Formateo             | Prettier + `.editorconfig` + `files.eol: "\n"` en `.vscode/settings.json` | Line endings normalizados con `.gitattributes` (`eol=lf`)                                                                  |
-| ORM                  | Prisma 6                                                                  | `packages/database`                                                                                                        |
+| ORM                  | Prisma 6                                                                  | `packages/database` (modelos base, directorio y promociones)                                                               |
 | DB local             | Postgres 17, Redis 7, Elasticsearch 8.16 vía `docker/docker-compose.yml`  | No verificado en este entorno (sin Docker disponible)                                                                      |
 | Web (`apps/web`)     | Next.js 15.5.27 + React 19.2.3                                            | App Router, Tailwind 3, Playwright smoke test; Jest todavía pendiente                                                      |
 | Backoffice           | Vite 8.3.1 + React 19.2.3                                                 | Jest con SWC                                                                                                               |
@@ -23,36 +23,55 @@ Este documento refleja el estado real del monorepo a medida que se implementa [S
 
 ```
 apps/
-  api/                  # NestJS 12 — ver detalle abajo
+  api/                  # NestJS 12 — controladores base + módulo Directory activo
   web/                  # Next.js 15 — App Router, Tailwind, Playwright
   backoffice/           # Vite 8 + React — panel inicial con Jest
   mobile/               # Expo SDK 57 — Expo Router, React Native
 packages/
   config/               # eslint-config, tsconfig, tailwind-config compartidos
-  shared-types/          # IUser, ITenant, UserRole, AuthProvider
-  shared-validations/     # Esquemas Zod de auth/tenant
-  database/              # Prisma schema + migración inicial (Tenant, User, AuthIdentity)
-  ui/                    # Button compartido para apps web
+  shared-types/         # Tipos compartidos: IUser, ITenant, ICategory, IListing, IListingPromotion, etc.
+  shared-validations/   # Esquemas Zod de auth, tenant, publicaciones y promociones
+  database/             # Prisma schema, migraciones y seeders (Tenants, Users, Categories, Listings, etc.)
+  ui/                   # Button compartido para apps web
 docker/
   docker-compose.yml     # Postgres, Redis, Elasticsearch
-README.md                 # Setup, commands and current validation status
-\.env.example             # Root environment variable template
-.github/workflows/        # Empty dev, QA and production workflow triggers
+README.md               # Setup, commands and current validation status
+\.env.example           # Root environment variable template
+.github/workflows/      # Empty dev, QA and production workflow triggers
 specs/
   01-arquitectura-scaffolding-monorepo.md
+  02-modelos-dominio-directorio.md
 ```
 
 ## `apps/api` — detalle
 
 - **Runtime:** ESM (`"type": "module"`), TypeScript 6, `nest build`/`nest start`.
-- **Testing:** Vitest (`npm run test`, `npm run test:e2e`).
+- **Testing:** Vitest (`npm run test`, `npm run test:e2e`). 4 suites y 10 tests unitarios pasando.
 - **Lint:** `eslint.config.cjs` extiende `packages/config/eslint-config/base.js` + globals de Vitest para specs.
-- **Módulos de dominio (placeholder, devuelven 501):** `identity`, `directory`, `booking`, `finance`, `search`, `chat`, `admin` en `src/modules/<nombre>/`.
+- **Módulos de dominio:**
+  - `directory`: **Activo (SPEC 02)** — conectado a Prisma, validación con Zod, soporte de filtros paginados, publicaciones, galerías y promociones.
+  - `identity`, `booking`, `finance`, `search`, `chat`, `admin`: placeholders en `src/modules/<nombre>/`.
 - **`src/common/`:** `filters/http-exception.filter.ts` (normaliza errores), `interceptors/logging.interceptor.ts` (log de requests), `guards/placeholder.guard.ts` (permite todo, se reemplaza cuando `identity` tenga guards reales).
 - **`src/health/`:** `GET /health` corre `SELECT 1` vía Prisma (`common/prisma/prisma.service.ts`) y responde `200`/`503` según conectividad a la DB.
 - **Dependencia:** `@vibe-planners/database` (workspace) para el cliente Prisma.
 
-### Módulo `identity` (Paso 7)
+### Módulo `directory` (SPEC 02)
+
+- **Servicio (`DirectoryService`):**
+  - `getCategories()` / `getCategoryBySlug()`: consulta jerárquica con subcategorías activas ordenadas.
+  - `getListings()`: búsqueda paginada y filtrable por `categoryId`, `subcategoryId`, `city`, `state`, rangos de `minPrice`/`maxPrice`, `status` y `hasPromotions` (vigentes con `endDate >= now()`).
+  - `getListingById()`: detalle completo con relaciones a categoría, subcategoría, galería (`media`), promociones activas y datos públicos del proveedor (`owner`).
+  - `createListing()` / `updateListing()`: generación automática de slug único dentro del tenant, persistencia de precios base y reglas híbridas en JSONB (`pricing_rules`), más galería de medios.
+  - `createPromotion()`: alta de cupones y descuentos porcentuales o de monto fijo asociados a una publicación.
+- **Controlador (`DirectoryController`):**
+  - Expone `/directory/categories`, `/directory/categories/:slug`, `/directory/listings`, `/directory/listings/:id` y `/directory/listings/:id/promotions`.
+  - Exige y valida el header multi-tenant `x-tenant-id` a través de `TenantRequest`.
+  - Valida estrictamente todos los payloads entrantes contra los esquemas Zod de `@vibe-planners/shared-validations` (`createListingSchema`, `updateListingSchema`, `listingFilterSchema`, `createPromotionSchema`), devolviendo `BadRequestException` formateado si fallan.
+- **Tests unitarios:**
+  - `directory.service.spec.ts`: pruebas aisladas con mocks de Prisma para consultas, paginación, creación de publicaciones y promociones.
+  - `directory.controller.spec.ts`: verificación de rechazo ante ausencia de header `x-tenant-id`, rechazo de payloads inválidos y delegación correcta hacia el servicio.
+
+### Módulo `identity` (Paso 7 de SPEC 01)
 
 - **JWT:** `@nestjs/jwt` registrado con `JWT_SECRET`/`JWT_EXPIRES_IN` por variable de entorno (default `dev-only-placeholder-secret` / `1h`). `IdentityService.issueToken()` firma el payload `{ sub, tenantId, role }`.
 - **Estrategias Passport:** `credentials` (email/password, stub — `validate()` lanza `UnauthorizedException`), `jwt` (Bearer token real, usada por `JwtAuthGuard`), `google`/`facebook` (passport-google-oauth20/passport-facebook configuradas con client ID/secret/callback por env var, `validate()` devuelve el profile sin persistir nada).
@@ -91,6 +110,22 @@ specs/
 - Incluye Overview, lista de eventos y `useGreeting`. React y React DOM se comparten en versión `19.2.3` para evitar copias nativas incompatibles.
 - `npm run typecheck`, `npm run lint` y `npx expo export --platform web` pasan. Expo Doctor reporta 21/21 chequeos correctos.
 - Expo puede iniciarse con `npm run dev --workspace=apps/mobile`; la vista web se abre con `npm run web --workspace=apps/mobile`.
+
+### `packages/database` (SPEC 01 y SPEC 02)
+
+- **Modelos:**
+  - `Tenant`, `User`, `AuthIdentity` (Autenticación y multi-tenancy con aislamiento por `tenant_id`).
+  - `Category`, `Subcategory` (Catálogo jerárquico base).
+  - `Listing`, `ListingMedia`, `ListingPromotion` (Publicaciones con pricing híbrido JSONB, galería y promociones con vigencia y límite de canjes).
+- **Migraciones:**
+  - `20260930155937_init`: tablas de tenants, users y auth_identities.
+  - `20260930190000_directory_and_listings`: tablas de categorías, subcategorías, publicaciones, promociones y medios con índices compuestos `(tenant_id, id)`.
+- **Seeder:** `packages/database/prisma/seed.ts` precarga las 10 categorías principales de México y sus subcategorías. Ejecutable con `npm run db:seed --workspace=@vibe-planners/database`.
+
+### `packages/shared-types` y `packages/shared-validations` (SPEC 02)
+
+- **Tipos compartidos:** interfaces de `ICategory`, `ISubcategory`, `IListing`, `IListingMedia`, `IListingPromotion`, `IPricingRules`, `IPricingPackage`, y enums `ListingStatus`, `PriceUnit`, `DiscountType`.
+- **Validaciones Zod:** esquemas tipados `createListingSchema`, `updateListingSchema`, `listingFilterSchema` y `createPromotionSchema`.
 
 ### `packages/ui`
 
