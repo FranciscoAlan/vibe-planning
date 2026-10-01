@@ -1,6 +1,6 @@
 # SPEC 01 — Arquitectura y scaffolding del monorepo
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** Ninguna
 > **Fecha:** 2026-09-30
 > **Objetivo:** Generate via script the base monorepo of Vibe Planners (apps, shared packages, database, identity, multi-tenancy, testing, tooling, and placeholders for external providers) without implementing business logic.

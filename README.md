@@ -66,13 +66,14 @@ npm run test --workspace=apps/api
 npm run test --workspace=apps/backoffice
 npm run test:e2e --workspace=apps/web
 npm run typecheck --workspace=apps/mobile
+npm run db:seed --workspace=@vibe-planners/database
 ```
 
 ## Current validation status
 
 The root Turborepo build and lint pipelines pass in the local development environment. API Vitest tests, backoffice Jest tests and the web Playwright smoke test also pass. Docker-dependent checks, including the API health check against a live PostgreSQL instance, must be validated in an environment with Docker available.
 
-See [docs/architecture.md](docs/architecture.md) for the current architecture and [specs/01-arquitectura-scaffolding-monorepo.md](specs/01-arquitectura-scaffolding-monorepo.md) for the approved scaffolding scope.
+See [docs/architecture.md](docs/architecture.md) for the current architecture, [specs/01-arquitectura-scaffolding-monorepo.md](specs/01-arquitectura-scaffolding-monorepo.md) for the scaffolding scope, and [specs/02-modelos-dominio-directorio.md](specs/02-modelos-dominio-directorio.md) for the directory and listing domain models.
 
 ## Generated files
 
