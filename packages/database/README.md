@@ -5,9 +5,12 @@ Prisma schema and migrations for the Vibe Planners platform.
 ## Local setup
 
 1. Start the local Postgres container (see `docker/docker-compose.yml`).
-2. Copy `.env.example` (repo root) to `.env` and set `DATABASE_URL`.
+2. Copy this package's `.env.example` to `.env` and set `DATABASE_URL`.
 3. Run `npm run migrate:dev --workspace=@vibe-planners/database` to apply migrations against your local database.
 4. Run `npm run generate --workspace=@vibe-planners/database` to regenerate the Prisma client after schema changes.
+
+Prisma CLI settings, including the database URL and seed command, are defined in
+`prisma.config.ts`. Keep `DATABASE_URL` in the database package's `.env` file for local development.
 
 ## Conventions
 

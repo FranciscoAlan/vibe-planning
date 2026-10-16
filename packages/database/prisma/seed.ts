@@ -1,6 +1,16 @@
 import { PrismaClient } from '../generated/client/index.js';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+function createPrismaClient() {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error('DATABASE_URL must be set before running the database seed.');
+  }
+
+  return new PrismaClient({
+    adapter: new PrismaPg({ connectionString, connectionTimeoutMillis: 5000 }),
+  });
+}
 
 const baseCategories = [
   {
@@ -246,7 +256,7 @@ const baseCategories = [
   },
 ];
 
-export async function seedCategories() {
+export async function seedCategories(prisma: PrismaClient) {
   console.log('Seeding categories and subcategories for Mexico...');
 
   for (const catData of baseCategories) {
@@ -283,8 +293,9 @@ export async function seedCategories() {
 }
 
 async function main() {
+  const prisma = createPrismaClient();
   try {
-    await seedCategories();
+    await seedCategories(prisma);
   } catch (error) {
     console.error('Error during database seed:', error);
     process.exit(1);
