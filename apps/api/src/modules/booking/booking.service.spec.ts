@@ -26,6 +26,7 @@ describe('BookingService', () => {
 
   const tenantId = 'tenant-1';
   const listingId = 'listing-1';
+  const ownerId = 'provider-1';
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -70,11 +71,11 @@ describe('BookingService', () => {
       };
       mockPrisma.listingBookingSettings.upsert.mockResolvedValue(settings);
 
-      await expect(service.configureListing(tenantId, listingId, settings)).resolves.toEqual(
-        settings,
-      );
+      await expect(
+        service.configureListing(tenantId, ownerId, listingId, settings),
+      ).resolves.toEqual(settings);
       expect(mockPrisma.listing.findFirst).toHaveBeenCalledWith({
-        where: { id: listingId, tenantId, status: 'PUBLISHED' },
+        where: { id: listingId, tenantId, status: 'PUBLISHED', ownerId },
         select: { id: true },
       });
       expect(mockPrisma.listingBookingSettings.upsert).toHaveBeenCalledWith({
@@ -88,7 +89,7 @@ describe('BookingService', () => {
       mockPrisma.listing.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.configureListing(tenantId, listingId, { timezoneId: 'UTC' }),
+        service.configureListing(tenantId, ownerId, listingId, { timezoneId: 'UTC' }),
       ).rejects.toBeInstanceOf(NotFoundException);
       expect(mockPrisma.listingBookingSettings.upsert).not.toHaveBeenCalled();
     });
@@ -102,7 +103,7 @@ describe('BookingService', () => {
       mockPrisma.availabilityWindow.create.mockImplementation(({ data }) => data);
 
       await expect(
-        service.createAvailabilityWindow(tenantId, listingId, {
+        service.createAvailabilityWindow(tenantId, ownerId, listingId, {
           startAt: '2026-01-15T09:00',
           endAt: '2026-01-15T10:00',
         }),
@@ -123,7 +124,7 @@ describe('BookingService', () => {
       });
 
       await expect(
-        service.createAvailabilityWindow(tenantId, listingId, {
+        service.createAvailabilityWindow(tenantId, ownerId, listingId, {
           startAt: time,
           endAt: '2026-11-02T10:00',
         }),
@@ -135,7 +136,7 @@ describe('BookingService', () => {
       mockPrisma.availabilityBlock.create.mockImplementation(({ data }) => data);
 
       await expect(
-        service.createAvailabilityBlock(tenantId, listingId, {
+        service.createAvailabilityBlock(tenantId, ownerId, listingId, {
           startAt: '2026-01-15T09:00',
           endAt: '2026-01-15T10:00',
           reason: 'Maintenance',
@@ -152,7 +153,7 @@ describe('BookingService', () => {
     it('deletes a window only within its tenant and listing', async () => {
       mockPrisma.availabilityWindow.deleteMany.mockResolvedValue({ count: 1 });
 
-      await service.deleteAvailabilityWindow(tenantId, listingId, 'window-1');
+      await service.deleteAvailabilityWindow(tenantId, ownerId, listingId, 'window-1');
 
       expect(mockPrisma.availabilityWindow.deleteMany).toHaveBeenCalledWith({
         where: { id: 'window-1', tenantId, listingId },

@@ -32,9 +32,14 @@ type Interval = {
 export class BookingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async configureListing(tenantId: string, listingId: string, input: ListingBookingSettingsInput) {
+  async configureListing(
+    tenantId: string,
+    ownerId: string,
+    listingId: string,
+    input: ListingBookingSettingsInput,
+  ) {
     const settings = this.parseInput(listingBookingSettingsSchema, input);
-    await this.getPublishedListing(tenantId, listingId);
+    await this.getPublishedListing(tenantId, listingId, ownerId);
     this.createFormatter(settings.timezoneId);
 
     return this.prisma.listingBookingSettings.upsert({
@@ -50,11 +55,12 @@ export class BookingService {
 
   async createAvailabilityWindow(
     tenantId: string,
+    ownerId: string,
     listingId: string,
     input: AvailabilityWindowInput,
   ) {
     const interval = this.parseInput(availabilityWindowSchema, input);
-    const { settings } = await this.getListingSettings(tenantId, listingId);
+    const { settings } = await this.getListingSettings(tenantId, listingId, ownerId);
     const { startAt, endAt } = this.toUtcInterval(interval, settings.timezoneId);
 
     return this.prisma.availabilityWindow.create({
@@ -62,8 +68,8 @@ export class BookingService {
     });
   }
 
-  async listAvailabilityWindows(tenantId: string, listingId: string) {
-    await this.getPublishedListing(tenantId, listingId);
+  async listAvailabilityWindows(tenantId: string, ownerId: string, listingId: string) {
+    await this.getPublishedListing(tenantId, listingId, ownerId);
 
     return this.prisma.availabilityWindow.findMany({
       where: { tenantId, listingId },
@@ -71,8 +77,13 @@ export class BookingService {
     });
   }
 
-  async deleteAvailabilityWindow(tenantId: string, listingId: string, windowId: string) {
-    await this.getPublishedListing(tenantId, listingId);
+  async deleteAvailabilityWindow(
+    tenantId: string,
+    ownerId: string,
+    listingId: string,
+    windowId: string,
+  ) {
+    await this.getPublishedListing(tenantId, listingId, ownerId);
     const result = await this.prisma.availabilityWindow.deleteMany({
       where: { id: windowId, tenantId, listingId },
     });
@@ -84,11 +95,12 @@ export class BookingService {
 
   async createAvailabilityBlock(
     tenantId: string,
+    ownerId: string,
     listingId: string,
     input: AvailabilityBlockInput,
   ) {
     const block = this.parseInput(availabilityBlockSchema, input);
-    const { settings } = await this.getListingSettings(tenantId, listingId);
+    const { settings } = await this.getListingSettings(tenantId, listingId, ownerId);
     const { startAt, endAt } = this.toUtcInterval(block, settings.timezoneId);
 
     return this.prisma.availabilityBlock.create({
@@ -102,8 +114,8 @@ export class BookingService {
     });
   }
 
-  async listAvailabilityBlocks(tenantId: string, listingId: string) {
-    await this.getPublishedListing(tenantId, listingId);
+  async listAvailabilityBlocks(tenantId: string, ownerId: string, listingId: string) {
+    await this.getPublishedListing(tenantId, listingId, ownerId);
 
     return this.prisma.availabilityBlock.findMany({
       where: { tenantId, listingId },
@@ -111,8 +123,13 @@ export class BookingService {
     });
   }
 
-  async deleteAvailabilityBlock(tenantId: string, listingId: string, blockId: string) {
-    await this.getPublishedListing(tenantId, listingId);
+  async deleteAvailabilityBlock(
+    tenantId: string,
+    ownerId: string,
+    listingId: string,
+    blockId: string,
+  ) {
+    await this.getPublishedListing(tenantId, listingId, ownerId);
     const result = await this.prisma.availabilityBlock.deleteMany({
       where: { id: blockId, tenantId, listingId },
     });
@@ -188,9 +205,14 @@ export class BookingService {
     return result.data;
   }
 
-  private async getPublishedListing(tenantId: string, listingId: string) {
+  private async getPublishedListing(tenantId: string, listingId: string, ownerId?: string) {
     const listing = await this.prisma.listing.findFirst({
-      where: { id: listingId, tenantId, status: 'PUBLISHED' },
+      where: {
+        id: listingId,
+        tenantId,
+        status: 'PUBLISHED',
+        ...(ownerId ? { ownerId } : {}),
+      },
       select: { id: true },
     });
 
@@ -201,8 +223,8 @@ export class BookingService {
     return listing;
   }
 
-  private async getListingSettings(tenantId: string, listingId: string) {
-    await this.getPublishedListing(tenantId, listingId);
+  private async getListingSettings(tenantId: string, listingId: string, ownerId?: string) {
+    await this.getPublishedListing(tenantId, listingId, ownerId);
     const settings = await this.prisma.listingBookingSettings.findFirst({
       where: { tenantId, listingId },
     });
