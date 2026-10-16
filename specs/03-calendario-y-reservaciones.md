@@ -1,6 +1,6 @@
 # SPEC 03 — Calendario y ciclo de reservaciones
 
-> **Estado:** Approved
+> **Estado:** Implemented
 > **Depende de:** SPEC 01, SPEC 02
 > **Fecha:** 2026-10-16
 > **Objetivo:** Implementar en la API la disponibilidad explícita y el ciclo de solicitudes, aceptación y cancelación de reservaciones para las publicaciones del directorio.
@@ -157,21 +157,21 @@ Los eventos del outbox se escriben en la misma transacción que el cambio de est
 
 ## Acceptance criteria
 
-- [ ] Una ventana disponible puede crearse y consultarse únicamente para una publicación publicada del tenant autenticado.
-- [ ] Un intervalo fuera de una ventana disponible, que traslapa un bloqueo o que cae fuera de los siguientes 365 días no puede reservarse.
-- [ ] Un intervalo vacío o con fin anterior al inicio se rechaza; intervalos contiguos no se consideran traslapados.
-- [ ] Los intervalos se guardan como instantes UTC y la respuesta conserva la zona IANA de la publicación.
-- [ ] Las publicaciones nuevas usan `REQUEST_APPROVAL`; una publicación puede elegir `INSTANT`.
-- [ ] Una solicitud pendiente retiene el intervalo hasta su vencimiento; el tiempo configurado en la publicación prevalece sobre el valor de sistema de 24 horas.
-- [ ] Una solicitud expirada deja de ocupar disponibilidad y su estado pasa a `EXPIRED` cuando se consulta o se intenta modificar.
-- [ ] Una publicación no permite dos reservaciones activas que se traslapen, incluso ante solicitudes concurrentes.
-- [ ] En modo de aprobación, el proveedor propietario puede aceptar o rechazar; aceptar produce `ACCEPTED_AWAITING_PAYMENT`.
-- [ ] En modo instantáneo, la reservación disponible produce `ACCEPTED_AWAITING_PAYMENT` sin aprobación manual.
-- [ ] Solo el cliente titular o el proveedor propietario puede cancelar; se registra actor y motivo y el intervalo se libera.
-- [ ] La identidad de cliente y proveedor se obtiene del principal autenticado, no de identificadores arbitrarios enviados en el payload.
-- [ ] Las operaciones de un tenant no pueden leer ni modificar ventanas, bloqueos o reservaciones de otro tenant.
-- [ ] Cada transición genera un evento outbox en la misma transacción; una falla al persistir el evento revierte también la transición.
-- [ ] Las pruebas unitarias y e2e enfocadas pasan, además del build y lint de la API.
+- [x] Una ventana disponible puede crearse y consultarse únicamente para una publicación publicada del tenant autenticado.
+- [x] Un intervalo fuera de una ventana disponible, que traslapa un bloqueo o que cae fuera de los siguientes 365 días no puede reservarse.
+- [x] Un intervalo vacío o con fin anterior al inicio se rechaza; intervalos contiguos no se consideran traslapados.
+- [x] Los intervalos se guardan como instantes UTC y la respuesta conserva la zona IANA de la publicación.
+- [x] Las publicaciones nuevas usan `REQUEST_APPROVAL`; una publicación puede elegir `INSTANT`.
+- [x] Una solicitud pendiente retiene el intervalo hasta su vencimiento; el tiempo configurado en la publicación prevalece sobre el valor de sistema de 24 horas.
+- [x] Una solicitud expirada deja de ocupar disponibilidad y su estado pasa a `EXPIRED` cuando se consulta o se intenta modificar.
+- [x] Una publicación no permite dos reservaciones activas que se traslapen, incluso ante solicitudes concurrentes.
+- [x] En modo de aprobación, el proveedor propietario puede aceptar o rechazar; aceptar produce `ACCEPTED_AWAITING_PAYMENT`.
+- [x] En modo instantáneo, la reservación disponible produce `ACCEPTED_AWAITING_PAYMENT` sin aprobación manual.
+- [x] Solo el cliente titular o el proveedor propietario puede cancelar; se registra actor y motivo y el intervalo se libera.
+- [x] La identidad de cliente y proveedor se obtiene del principal autenticado, no de identificadores arbitrarios enviados en el payload.
+- [x] Las operaciones de un tenant no pueden leer ni modificar ventanas, bloqueos o reservaciones de otro tenant.
+- [x] Cada transición genera un evento outbox en la misma transacción; una falla al persistir el evento revierte también la transición.
+- [x] Las pruebas unitarias y e2e enfocadas pasan, además del build y lint de la API.
 
 ## Decisions
 

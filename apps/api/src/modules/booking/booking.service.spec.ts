@@ -280,6 +280,73 @@ describe('BookingService', () => {
       expect(mockPrisma.bookingOutboxEvent.create).not.toHaveBeenCalled();
     });
 
+    it('rejects intervals outside an explicit window and intervals overlapping a block', async () => {
+      mockPrisma.listingBookingSettings.findFirst.mockResolvedValue({
+        bookingMode: 'REQUEST_APPROVAL',
+        timezoneId: 'UTC',
+        confirmationTimeHours: null,
+      });
+      mockPrisma.availabilityWindow.findFirst.mockResolvedValue(null);
+
+      await expect(service.createReservation(tenantId, 'client-1', request)).rejects.toThrow(
+        'explicit availability window',
+      );
+
+      mockPrisma.availabilityWindow.findFirst.mockResolvedValue({ id: 'window-1' });
+      mockPrisma.availabilityBlock.findFirst.mockResolvedValue({ id: 'block-1' });
+
+      await expect(service.createReservation(tenantId, 'client-1', request)).rejects.toThrow(
+        'availability block',
+      );
+      expect(mockPrisma.reservation.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects reservations beyond the 365-day horizon and empty intervals', async () => {
+      await expect(
+        service.createReservation(tenantId, 'client-1', {
+          ...request,
+          startAt: '2027-01-02T00:00',
+          endAt: '2027-01-02T01:00',
+        }),
+      ).rejects.toThrow('next 365 days');
+      await expect(
+        service.createReservation(tenantId, 'client-1', {
+          ...request,
+          endAt: request.startAt,
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(mockPrisma.availabilityWindow.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('allows adjacent reservations because intervals use half-open boundaries', async () => {
+      mockPrisma.listingBookingSettings.findFirst.mockResolvedValue({
+        bookingMode: 'REQUEST_APPROVAL',
+        timezoneId: 'UTC',
+        confirmationTimeHours: null,
+      });
+      mockPrisma.reservation.findFirst.mockResolvedValue(null);
+      mockPrisma.reservation.create.mockImplementation(({ data }) => ({
+        id: 'reservation-1',
+        ...data,
+      }));
+
+      await service.createReservation(tenantId, 'client-1', request);
+      await service.createReservation(tenantId, 'client-2', {
+        ...request,
+        startAt: request.endAt,
+        endAt: '2026-01-02T11:00',
+      });
+
+      expect(mockPrisma.reservation.create).toHaveBeenCalledTimes(2);
+      expect(mockPrisma.reservation.findFirst).toHaveBeenCalledWith({
+        where: expect.objectContaining({
+          startAt: { lt: new Date('2026-01-02T11:00:00.000Z') },
+          endAt: { gt: new Date('2026-01-02T10:00:00.000Z') },
+        }),
+        select: { id: true },
+      });
+    });
+
     it('serializes concurrent overlapping requests on the listing lock', async () => {
       mockPrisma.listingBookingSettings.findFirst.mockResolvedValue({
         bookingMode: 'REQUEST_APPROVAL',
