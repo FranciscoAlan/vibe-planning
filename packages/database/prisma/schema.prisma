@@ -15,6 +15,11 @@ model Tenant {
   updatedAt DateTime  @updatedAt @map("updated_at")
   users     User[]
   listings  Listing[]
+  bookingSettings     ListingBookingSettings[]
+  availabilityWindows AvailabilityWindow[]
+  availabilityBlocks  AvailabilityBlock[]
+  reservations        Reservation[]
+  bookingOutboxEvents BookingOutboxEvent[]
 
   @@map("tenants")
 }
@@ -54,6 +59,8 @@ model User {
   updatedAt       DateTime       @updatedAt @map("updated_at")
   identities      AuthIdentity[]
   listings        Listing[]
+  customerReservations  Reservation[]  @relation("ReservationCustomer")
+  cancelledReservations Reservation[]  @relation("ReservationCancelledBy")
 
   @@index([tenantId, id])
   @@map("users")
@@ -97,6 +104,23 @@ enum DiscountType {
   FIXED_AMOUNT
 
   @@map("discount_type")
+}
+
+enum BookingMode {
+  REQUEST_APPROVAL
+  INSTANT
+
+  @@map("booking_mode")
+}
+
+enum ReservationStatus {
+  REQUESTED
+  ACCEPTED_AWAITING_PAYMENT
+  REJECTED
+  EXPIRED
+  CANCELLED
+
+  @@map("reservation_status")
 }
 
 model Category {
@@ -174,6 +198,10 @@ model Listing {
 
   media              ListingMedia[]
   promotions         ListingPromotion[]
+  bookingSettings     ListingBookingSettings?
+  availabilityWindows AvailabilityWindow[]
+  availabilityBlocks  AvailabilityBlock[]
+  reservations        Reservation[]
 
   @@unique([tenantId, slug])
   @@index([tenantId, id])
@@ -218,4 +246,91 @@ model ListingMedia {
 
   @@index([listingId])
   @@map("listing_media")
+}
+
+model ListingBookingSettings {
+  id                    String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId              String      @map("tenant_id") @db.Uuid
+  listingId             String      @unique @map("listing_id") @db.Uuid
+  bookingMode           BookingMode @default(REQUEST_APPROVAL) @map("booking_mode")
+  timezoneId            String      @map("timezone_id")
+  confirmationTimeHours Int?        @map("confirmation_time_hours")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+  tenant                Tenant      @relation(fields: [tenantId], references: [id])
+  listing               Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, listingId])
+  @@map("listing_booking_settings")
+}
+
+model AvailabilityWindow {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  listingId String   @map("listing_id") @db.Uuid
+  startAt   DateTime @map("start_at") @db.Timestamptz(6)
+  endAt     DateTime @map("end_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, listingId, startAt, endAt])
+  @@map("availability_windows")
+}
+
+model AvailabilityBlock {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  listingId String   @map("listing_id") @db.Uuid
+  startAt   DateTime @map("start_at") @db.Timestamptz(6)
+  endAt     DateTime @map("end_at") @db.Timestamptz(6)
+  reason    String?
+  createdAt DateTime @default(now()) @map("created_at")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, listingId, startAt, endAt])
+  @@map("availability_blocks")
+}
+
+model Reservation {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String               @map("tenant_id") @db.Uuid
+  listingId          String               @map("listing_id") @db.Uuid
+  customerId         String               @map("customer_id") @db.Uuid
+  startAt            DateTime             @map("start_at") @db.Timestamptz(6)
+  endAt              DateTime             @map("end_at") @db.Timestamptz(6)
+  timezoneId         String               @map("timezone_id")
+  status             ReservationStatus    @default(REQUESTED)
+  expiresAt          DateTime?            @map("expires_at") @db.Timestamptz(6)
+  cancelledById      String?              @map("cancelled_by_id") @db.Uuid
+  cancellationReason String?              @map("cancellation_reason")
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  tenant             Tenant               @relation(fields: [tenantId], references: [id])
+  listing            Listing              @relation(fields: [listingId], references: [id])
+  customer           User                 @relation("ReservationCustomer", fields: [customerId], references: [id])
+  cancelledBy        User?                @relation("ReservationCancelledBy", fields: [cancelledById], references: [id])
+  events             BookingOutboxEvent[]
+
+  @@index([tenantId, listingId, startAt, endAt])
+  @@index([tenantId, customerId, createdAt])
+  @@index([status, expiresAt])
+  @@map("reservations")
+}
+
+model BookingOutboxEvent {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String      @map("tenant_id") @db.Uuid
+  reservationId String      @map("reservation_id") @db.Uuid
+  eventType     String      @map("event_type")
+  payload       Json
+  occurredAt    DateTime    @default(now()) @map("occurred_at")
+  publishedAt   DateTime?   @map("published_at") @db.Timestamptz(6)
+  tenant        Tenant      @relation(fields: [tenantId], references: [id])
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, occurredAt])
+  @@index([publishedAt, occurredAt])
+  @@map("booking_outbox_events")
 }
