@@ -121,7 +121,7 @@ export const cancelReservationSchema = z.object({
   reason: z.string().max(500).optional(),
 });
 
-export type ListingBookingSettingsInput = z.infer<typeof listingBookingSettingsSchema>;
+export type ListingBookingSettingsInput = z.input<typeof listingBookingSettingsSchema>;
 export type AvailabilityWindowInput = z.infer<typeof availabilityWindowSchema>;
 export type AvailabilityBlockInput = z.infer<typeof availabilityBlockSchema>;
 export type AvailabilityQueryInput = z.infer<typeof availabilityQuerySchema>;
