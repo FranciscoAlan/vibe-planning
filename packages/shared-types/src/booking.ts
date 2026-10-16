@@ -48,3 +48,13 @@ export interface IReservation {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CreateReservationRequest {
+  listingId: string;
+  startAt: string;
+  endAt: string;
+}
+
+export interface ReservationCancellationRequest {
+  reason?: string;
+}

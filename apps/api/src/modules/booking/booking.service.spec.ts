@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BookingService } from './booking.service.js';
 import type { PrismaService } from '../../common/prisma/prisma.service.js';
@@ -13,19 +13,30 @@ describe('BookingService', () => {
     };
     availabilityWindow: {
       create: ReturnType<typeof vi.fn>;
+      findFirst: ReturnType<typeof vi.fn>;
       findMany: ReturnType<typeof vi.fn>;
       deleteMany: ReturnType<typeof vi.fn>;
     };
     availabilityBlock: {
       create: ReturnType<typeof vi.fn>;
+      findFirst: ReturnType<typeof vi.fn>;
       findMany: ReturnType<typeof vi.fn>;
       deleteMany: ReturnType<typeof vi.fn>;
     };
-    reservation: { findMany: ReturnType<typeof vi.fn> };
+    reservation: {
+      findMany: ReturnType<typeof vi.fn>;
+      findFirst: ReturnType<typeof vi.fn>;
+      create: ReturnType<typeof vi.fn>;
+      update: ReturnType<typeof vi.fn>;
+      updateMany: ReturnType<typeof vi.fn>;
+    };
+    bookingOutboxEvent: { create: ReturnType<typeof vi.fn> };
+    $queryRaw: ReturnType<typeof vi.fn>;
+    $transaction: ReturnType<typeof vi.fn>;
   };
 
   const tenantId = 'tenant-1';
-  const listingId = 'listing-1';
+  const listingId = '00000000-0000-0000-0000-000000000001';
   const ownerId = 'provider-1';
 
   beforeEach(() => {
@@ -45,15 +56,28 @@ describe('BookingService', () => {
       },
       availabilityWindow: {
         create: vi.fn(),
+        findFirst: vi.fn(),
         findMany: vi.fn().mockResolvedValue([]),
         deleteMany: vi.fn(),
       },
       availabilityBlock: {
         create: vi.fn(),
+        findFirst: vi.fn(),
         findMany: vi.fn().mockResolvedValue([]),
         deleteMany: vi.fn(),
       },
-      reservation: { findMany: vi.fn().mockResolvedValue([]) },
+      reservation: {
+        findMany: vi.fn().mockResolvedValue([]),
+        findFirst: vi.fn(),
+        create: vi.fn(),
+        update: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      bookingOutboxEvent: { create: vi.fn() },
+      $queryRaw: vi.fn().mockResolvedValue([]),
+      $transaction: vi.fn(async (callback: (tx: unknown) => Promise<unknown>) =>
+        callback(mockPrisma),
+      ),
     };
     service = new BookingService(mockPrisma as unknown as PrismaService);
   });
@@ -161,6 +185,150 @@ describe('BookingService', () => {
     });
   });
 
+  describe('createReservation', () => {
+    const request = {
+      listingId,
+      startAt: '2026-01-02T09:00',
+      endAt: '2026-01-02T10:00',
+    };
+
+    beforeEach(() => {
+      mockPrisma.availabilityWindow.findFirst.mockResolvedValue({ id: 'window-1' });
+      mockPrisma.availabilityBlock.findFirst.mockResolvedValue(null);
+      mockPrisma.reservation.findFirst.mockResolvedValue(null);
+      mockPrisma.reservation.create.mockImplementation(({ data }) => ({
+        id: 'reservation-1',
+        ...data,
+      }));
+      mockPrisma.bookingOutboxEvent.create.mockResolvedValue({});
+    });
+
+    it('creates an approval request with a listing-specific timeout and outbox event', async () => {
+      mockPrisma.listingBookingSettings.findFirst.mockResolvedValue({
+        bookingMode: 'REQUEST_APPROVAL',
+        timezoneId: 'UTC',
+        confirmationTimeHours: 12,
+      });
+
+      const result = await service.createReservation(tenantId, 'client-1', request);
+
+      expect(result).toMatchObject({
+        tenantId,
+        listingId,
+        customerId: 'client-1',
+        status: 'REQUESTED',
+        expiresAt: new Date('2026-01-01T12:00:00.000Z'),
+      });
+      expect(mockPrisma.$queryRaw).toHaveBeenCalledOnce();
+      expect(mockPrisma.availabilityWindow.findFirst).toHaveBeenCalledWith({
+        where: {
+          tenantId,
+          listingId,
+          startAt: { lte: new Date('2026-01-02T09:00:00.000Z') },
+          endAt: { gte: new Date('2026-01-02T10:00:00.000Z') },
+        },
+        select: { id: true },
+      });
+      expect(mockPrisma.bookingOutboxEvent.create).toHaveBeenCalledWith({
+        data: {
+          tenantId,
+          reservationId: 'reservation-1',
+          eventType: 'RESERVATION_REQUESTED',
+          payload: {
+            reservationId: 'reservation-1',
+            listingId,
+            customerId: 'client-1',
+            status: 'REQUESTED',
+          },
+        },
+      });
+    });
+
+    it('creates instant reservations as accepted with the system timeout', async () => {
+      mockPrisma.listingBookingSettings.findFirst.mockResolvedValue({
+        bookingMode: 'INSTANT',
+        timezoneId: 'UTC',
+        confirmationTimeHours: 4,
+      });
+
+      const result = await service.createReservation(tenantId, 'client-1', request);
+
+      expect(result).toMatchObject({
+        status: 'ACCEPTED_AWAITING_PAYMENT',
+        expiresAt: new Date('2026-01-02T00:00:00.000Z'),
+      });
+      expect(mockPrisma.bookingOutboxEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          eventType: 'RESERVATION_ACCEPTED',
+          payload: expect.objectContaining({ status: 'ACCEPTED_AWAITING_PAYMENT' }),
+        }),
+      });
+    });
+
+    it('rejects unavailable intervals and overlaps with active reservations', async () => {
+      mockPrisma.listingBookingSettings.findFirst.mockResolvedValue({
+        bookingMode: 'REQUEST_APPROVAL',
+        timezoneId: 'UTC',
+        confirmationTimeHours: null,
+      });
+      mockPrisma.reservation.findFirst.mockResolvedValue({ id: 'existing-reservation' });
+
+      await expect(service.createReservation(tenantId, 'client-1', request)).rejects.toThrow(
+        'already reserved',
+      );
+      expect(mockPrisma.reservation.create).not.toHaveBeenCalled();
+      expect(mockPrisma.bookingOutboxEvent.create).not.toHaveBeenCalled();
+    });
+
+    it('serializes concurrent overlapping requests on the listing lock', async () => {
+      mockPrisma.listingBookingSettings.findFirst.mockResolvedValue({
+        bookingMode: 'REQUEST_APPROVAL',
+        timezoneId: 'UTC',
+        confirmationTimeHours: null,
+      });
+      const reservations: Array<{ id: string; startAt: Date; endAt: Date }> = [];
+      let transactionQueue = Promise.resolve();
+      mockPrisma.$transaction.mockImplementation(async (callback) => {
+        let releaseTransaction = () => {};
+        const currentTransaction = transactionQueue;
+        transactionQueue = new Promise<void>((resolve) => {
+          releaseTransaction = resolve;
+        });
+        await currentTransaction;
+        try {
+          return await callback(mockPrisma);
+        } finally {
+          releaseTransaction();
+        }
+      });
+      mockPrisma.reservation.findFirst.mockImplementation(({ where }) => {
+        if (!where.status) {
+          return null;
+        }
+        return (
+          reservations.find(
+            (reservation) =>
+              reservation.startAt < where.startAt.lt && reservation.endAt > where.endAt.gt,
+          ) ?? null
+        );
+      });
+      mockPrisma.reservation.create.mockImplementation(({ data }) => {
+        const reservation = { id: `reservation-${reservations.length + 1}`, ...data };
+        reservations.push(reservation);
+        return reservation;
+      });
+
+      const results = await Promise.allSettled([
+        service.createReservation(tenantId, 'client-1', request),
+        service.createReservation(tenantId, 'client-2', request),
+      ]);
+
+      expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+      expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
+      expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('getAvailability', () => {
     const query = {
       startAt: '2026-01-02T09:00',
@@ -180,12 +348,16 @@ describe('BookingService', () => {
           endAt: new Date('2026-01-02T11:00:00.000Z'),
         },
       ]);
-      mockPrisma.reservation.findMany.mockResolvedValue([
-        {
-          startAt: new Date('2026-01-02T11:00:00.000Z'),
-          endAt: new Date('2026-01-02T12:00:00.000Z'),
-        },
-      ]);
+      mockPrisma.reservation.findMany.mockImplementation(({ where }) =>
+        where.expiresAt?.lte
+          ? []
+          : [
+              {
+                startAt: new Date('2026-01-02T11:00:00.000Z'),
+                endAt: new Date('2026-01-02T12:00:00.000Z'),
+              },
+            ],
+      );
 
       await expect(service.getAvailability(tenantId, listingId, query)).resolves.toEqual({
         timezoneId: 'UTC',
@@ -226,6 +398,204 @@ describe('BookingService', () => {
         }),
       ).rejects.toBeInstanceOf(BadRequestException);
       expect(mockPrisma.availabilityWindow.findMany).not.toHaveBeenCalled();
+    });
+
+    it('expires elapsed reservations and emits an event before calculating availability', async () => {
+      const expiredReservation = {
+        id: 'expired-reservation',
+        listingId,
+        status: 'REQUESTED',
+        expiresAt: new Date('2025-12-31T23:59:59.000Z'),
+      };
+      mockPrisma.reservation.findMany.mockImplementation(({ where }) =>
+        where.expiresAt ? [expiredReservation] : [],
+      );
+      mockPrisma.reservation.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.bookingOutboxEvent.create.mockResolvedValue({});
+
+      const result = await service.getAvailability(tenantId, listingId, query);
+
+      expect(result.availableIntervals).toEqual([]);
+      expect(mockPrisma.reservation.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'expired-reservation',
+          tenantId,
+          status: 'REQUESTED',
+          expiresAt: { lte: new Date('2026-01-01T00:00:00.000Z') },
+        },
+        data: { status: 'EXPIRED' },
+      });
+      expect(mockPrisma.bookingOutboxEvent.create).toHaveBeenCalledWith({
+        data: {
+          tenantId,
+          reservationId: 'expired-reservation',
+          eventType: 'RESERVATION_EXPIRED',
+          payload: {
+            reservationId: 'expired-reservation',
+            previousStatus: 'REQUESTED',
+            status: 'EXPIRED',
+          },
+        },
+      });
+    });
+  });
+
+  describe('reservation decisions and cancellation', () => {
+    const reservation = {
+      id: 'reservation-1',
+      tenantId,
+      listingId,
+      customerId: 'client-1',
+      status: 'REQUESTED',
+      expiresAt: new Date('2026-01-01T12:00:00.000Z'),
+      listing: { ownerId },
+    };
+
+    beforeEach(() => {
+      mockPrisma.reservation.findFirst.mockResolvedValue(reservation);
+      mockPrisma.reservation.update.mockImplementation(({ data }) => ({
+        ...reservation,
+        ...data,
+      }));
+      mockPrisma.reservation.updateMany.mockResolvedValue({ count: 1 });
+      mockPrisma.bookingOutboxEvent.create.mockResolvedValue({});
+    });
+
+    it('accepts and rejects approval requests with matching outbox events', async () => {
+      mockPrisma.listingBookingSettings.findFirst.mockResolvedValue({
+        bookingMode: 'REQUEST_APPROVAL',
+      });
+
+      const accepted = await service.acceptReservation(tenantId, ownerId, reservation.id);
+      expect(accepted).toMatchObject({
+        status: 'ACCEPTED_AWAITING_PAYMENT',
+        expiresAt: new Date('2026-01-02T00:00:00.000Z'),
+      });
+      expect(mockPrisma.bookingOutboxEvent.create).toHaveBeenNthCalledWith(1, {
+        data: expect.objectContaining({
+          eventType: 'RESERVATION_ACCEPTED',
+          payload: expect.objectContaining({
+            previousStatus: 'REQUESTED',
+            status: 'ACCEPTED_AWAITING_PAYMENT',
+          }),
+        }),
+      });
+
+      mockPrisma.reservation.update.mockClear();
+      mockPrisma.bookingOutboxEvent.create.mockClear();
+      const rejected = await service.rejectReservation(tenantId, ownerId, reservation.id);
+      expect(rejected).toMatchObject({ status: 'REJECTED', expiresAt: null });
+      expect(mockPrisma.bookingOutboxEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          eventType: 'RESERVATION_REJECTED',
+          payload: expect.objectContaining({ status: 'REJECTED' }),
+        }),
+      });
+    });
+
+    it('expires an elapsed request when the provider attempts to decide it', async () => {
+      mockPrisma.reservation.findFirst.mockResolvedValue({
+        ...reservation,
+        expiresAt: new Date('2025-12-31T23:59:59.000Z'),
+      });
+      mockPrisma.listingBookingSettings.findFirst.mockResolvedValue({
+        bookingMode: 'REQUEST_APPROVAL',
+      });
+
+      await expect(
+        service.acceptReservation(tenantId, ownerId, reservation.id),
+      ).rejects.toBeInstanceOf(ConflictException);
+      expect(mockPrisma.reservation.update).not.toHaveBeenCalled();
+      expect(mockPrisma.reservation.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: reservation.id,
+          tenantId,
+          status: 'REQUESTED',
+          expiresAt: { lte: new Date('2026-01-01T00:00:00.000Z') },
+        },
+        data: { status: 'EXPIRED' },
+      });
+      expect(mockPrisma.bookingOutboxEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ eventType: 'RESERVATION_EXPIRED' }),
+      });
+    });
+
+    it('cancels only for the authenticated customer or listing owner and records the reason', async () => {
+      const cancelled = await service.cancelReservation(
+        tenantId,
+        'client-1',
+        'CLIENT',
+        reservation.id,
+        { reason: 'Plans changed' },
+      );
+
+      expect(cancelled).toMatchObject({
+        status: 'CANCELLED',
+        cancelledById: 'client-1',
+        cancellationReason: 'Plans changed',
+      });
+      expect(mockPrisma.reservation.update).toHaveBeenCalledWith({
+        where: { id: reservation.id },
+        data: {
+          status: 'CANCELLED',
+          expiresAt: null,
+          cancelledById: 'client-1',
+          cancellationReason: 'Plans changed',
+        },
+      });
+      expect(mockPrisma.bookingOutboxEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          eventType: 'RESERVATION_CANCELLED',
+          payload: expect.objectContaining({ actorId: 'client-1', reason: 'Plans changed' }),
+        }),
+      });
+
+      mockPrisma.reservation.update.mockClear();
+      mockPrisma.bookingOutboxEvent.create.mockClear();
+      await service.cancelReservation(tenantId, ownerId, 'PROVIDER', reservation.id, {});
+      expect(mockPrisma.reservation.update).toHaveBeenCalledWith({
+        where: { id: reservation.id },
+        data: expect.objectContaining({
+          status: 'CANCELLED',
+          cancelledById: ownerId,
+          cancellationReason: null,
+        }),
+      });
+      expect(mockPrisma.bookingOutboxEvent.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          eventType: 'RESERVATION_CANCELLED',
+          payload: expect.objectContaining({ actorId: ownerId, actorRole: 'PROVIDER' }),
+        }),
+      });
+
+      await expect(
+        service.cancelReservation(tenantId, 'other-client', 'CLIENT', reservation.id, {}),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('propagates outbox failures so the transaction is rejected', async () => {
+      const eventFailure = new Error('outbox unavailable');
+      mockPrisma.listingBookingSettings.findFirst.mockResolvedValue({
+        bookingMode: 'REQUEST_APPROVAL',
+        timezoneId: 'UTC',
+        confirmationTimeHours: null,
+      });
+      mockPrisma.availabilityWindow.findFirst.mockResolvedValue({ id: 'window-1' });
+      mockPrisma.availabilityBlock.findFirst.mockResolvedValue(null);
+      mockPrisma.reservation.findFirst.mockResolvedValue(null);
+      mockPrisma.reservation.create.mockResolvedValue({ id: 'reservation-1' });
+      mockPrisma.bookingOutboxEvent.create.mockRejectedValue(eventFailure);
+
+      await expect(
+        service.createReservation(tenantId, 'client-1', {
+          listingId,
+          startAt: '2026-01-02T09:00',
+          endAt: '2026-01-02T10:00',
+        }),
+      ).rejects.toBe(eventFailure);
+      expect(mockPrisma.$transaction).toHaveBeenCalledOnce();
+      expect(mockPrisma.reservation.create).toHaveBeenCalledOnce();
+      expect(mockPrisma.bookingOutboxEvent.create).toHaveBeenCalledOnce();
     });
   });
 });

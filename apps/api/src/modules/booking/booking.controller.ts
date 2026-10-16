@@ -19,12 +19,16 @@ import {
   availabilityBlockSchema,
   availabilityQuerySchema,
   availabilityWindowSchema,
+  cancelReservationSchema,
+  createReservationSchema,
   listingBookingSettingsSchema,
 } from '@vibe-planners/shared-validations';
 import type {
   AvailabilityBlockInput,
   AvailabilityQueryInput,
   AvailabilityWindowInput,
+  CancelReservationInput,
+  CreateReservationInput,
   ListingBookingSettingsInput,
 } from '@vibe-planners/shared-validations';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard.js';
@@ -81,6 +85,87 @@ export class BookingController {
     );
 
     return this.bookingService.getAvailability(principal.tenantId, listingId, input);
+  }
+
+  @Post('reservations')
+  createReservation(@Req() req: AuthenticatedRequest, @Body() body: unknown) {
+    const principal = this.requirePrincipal(req);
+    this.requireRole(principal, 'CLIENT');
+    const input = this.parseBody<CreateReservationInput>(
+      createReservationSchema,
+      body,
+      'Invalid reservation request',
+    );
+
+    return this.bookingService.createReservation(principal.tenantId, principal.sub, input);
+  }
+
+  @Get('reservations')
+  listCustomerReservations(@Req() req: AuthenticatedRequest) {
+    const principal = this.requirePrincipal(req);
+    this.requireRole(principal, 'CLIENT');
+
+    return this.bookingService.listCustomerReservations(principal.tenantId, principal.sub);
+  }
+
+  @Get('listings/:listingId/reservations')
+  listListingReservations(
+    @Req() req: AuthenticatedRequest,
+    @Param('listingId', ParseUUIDPipe) listingId: string,
+  ) {
+    const principal = this.requirePrincipal(req);
+    this.requireRole(principal, 'PROVIDER');
+
+    return this.bookingService.listListingReservations(
+      principal.tenantId,
+      principal.sub,
+      listingId,
+    );
+  }
+
+  @Post('reservations/:reservationId/accept')
+  acceptReservation(
+    @Req() req: AuthenticatedRequest,
+    @Param('reservationId', ParseUUIDPipe) reservationId: string,
+  ) {
+    const principal = this.requirePrincipal(req);
+    this.requireRole(principal, 'PROVIDER');
+
+    return this.bookingService.acceptReservation(principal.tenantId, principal.sub, reservationId);
+  }
+
+  @Post('reservations/:reservationId/reject')
+  rejectReservation(
+    @Req() req: AuthenticatedRequest,
+    @Param('reservationId', ParseUUIDPipe) reservationId: string,
+  ) {
+    const principal = this.requirePrincipal(req);
+    this.requireRole(principal, 'PROVIDER');
+
+    return this.bookingService.rejectReservation(principal.tenantId, principal.sub, reservationId);
+  }
+
+  @Post('reservations/:reservationId/cancel')
+  cancelReservation(
+    @Req() req: AuthenticatedRequest,
+    @Param('reservationId', ParseUUIDPipe) reservationId: string,
+    @Body() body: unknown = {},
+  ) {
+    const principal = this.requirePrincipal(req);
+    const actorRole = this.requireCustomerOrProvider(principal);
+    const input = this.parseBody<CancelReservationInput>(
+      cancelReservationSchema,
+      body,
+      'Invalid cancellation request',
+    );
+
+    return this.bookingService.cancelReservation(
+      principal.tenantId,
+      principal.sub,
+      actorRole,
+      reservationId,
+      input,
+    );
   }
 
   @Post('listings/:listingId/availability/windows')
@@ -195,16 +280,17 @@ export class BookingController {
     return principal;
   }
 
-  private requireRole(principal: JwtPayload, role: 'PROVIDER'): void {
+  private requireRole(principal: JwtPayload, role: 'PROVIDER' | 'CLIENT'): void {
     if (principal.role !== role) {
-      throw new ForbiddenException('Only the listing provider can manage availability');
+      throw new ForbiddenException(`Only ${role.toLowerCase()}s can perform this operation`);
     }
   }
 
-  private requireCustomerOrProvider(principal: JwtPayload): void {
+  private requireCustomerOrProvider(principal: JwtPayload): 'CLIENT' | 'PROVIDER' {
     if (principal.role !== 'CLIENT' && principal.role !== 'PROVIDER') {
       throw new ForbiddenException('Only clients and providers can view availability');
     }
+    return principal.role;
   }
 
   private parseBody<T>(schema: SafeParseSchema<T>, body: unknown, message: string): T {
