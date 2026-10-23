@@ -1,6 +1,6 @@
 # SPEC 05 — Gestión segura de variables de entorno
 
-> **Estado:** Draft
+> **Estado:** Aprobado
 > **Depende de:** Ninguna
 > **Fecha:** 2026-10-23
 > **Objetivo:** Documentar y operar las variables de entorno de la API para `dev`, `qa` y `prod` mediante Doppler, con inventario reconciliado y respaldos manuales cifrados y restaurables.
