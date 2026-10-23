@@ -12,6 +12,8 @@ import {
 import type { Request } from 'express';
 import {
   changePasswordSchema,
+  confirmTwoFactorEnrollmentSchema,
+  createOrganizationSchema,
   loginWithCredentialsSchema,
   requestEmailVerificationSchema,
   requestPhoneChallengeSchema,
@@ -37,8 +39,7 @@ type SafeParseSchema<T> = {
 };
 
 /**
- * API endpoints for credentials and phone verification. Social sign-in and
- * 2FA flows remain placeholders until their implementation steps.
+ * API endpoints for credentials, sessions, organizations, and two-factor authentication.
  */
 @Controller('identity')
 export class IdentityController {
@@ -150,14 +151,44 @@ export class IdentityController {
     return this.identity.logoutAll(request.user.sub);
   }
 
+  @Post('organizations')
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard)
+  createOrganization(@Req() request: AuthenticatedRequest, @Body() body: unknown) {
+    if (!request.user?.sub) {
+      throw new BadRequestException('Authenticated identity is missing');
+    }
+    return this.identity.createOrganization(
+      request.user.sub,
+      this.parseBody(createOrganizationSchema, body),
+    );
+  }
+
+  @Post('2fa/enroll')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  beginTwoFactorEnrollment(@Req() request: AuthenticatedRequest) {
+    if (!request.user?.sub) {
+      throw new BadRequestException('Authenticated identity is missing');
+    }
+    return this.identity.beginTwoFactorEnrollment(request.user.sub);
+  }
+
+  @Post('2fa/enroll/confirm')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  confirmTwoFactorEnrollment(@Req() request: AuthenticatedRequest, @Body() body: unknown) {
+    if (!request.user?.sub) {
+      throw new BadRequestException('Authenticated identity is missing');
+    }
+    const input = this.parseBody(confirmTwoFactorEnrollmentSchema, body);
+    return this.identity.confirmTwoFactorEnrollment(request.user.sub, input.code);
+  }
+
   @Post('2fa/verify')
-  @HttpCode(HttpStatus.NOT_IMPLEMENTED)
+  @HttpCode(HttpStatus.OK)
   verifyTwoFactor(@Body() body: unknown) {
-    const parsed = verifyTwoFactorSchema.safeParse(body);
-    return {
-      message: 'identity.verifyTwoFactor not implemented yet',
-      validInput: parsed.success,
-    };
+    return this.identity.verifyTwoFactor(this.parseBody(verifyTwoFactorSchema, body));
   }
 
   private parseBody<T>(schema: SafeParseSchema<T>, body: unknown): T {

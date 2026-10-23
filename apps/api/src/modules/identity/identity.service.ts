@@ -14,12 +14,14 @@ import {
   AccountStatus as DatabaseAccountStatus,
   ChallengeChannel as DatabaseChallengeChannel,
   ChallengePurpose as DatabaseChallengePurpose,
+  OrganizationRole as DatabaseOrganizationRole,
   Prisma,
   UserProfileType as DatabaseUserProfileType,
 } from '@vibe-planners/database';
 import { AccountStatus, ChallengePurpose, UserProfileType } from '@vibe-planners/shared-types';
 import type {
   ChangePasswordInput,
+  CreateOrganizationInput,
   LoginWithCredentialsInput,
   RegisterWithCredentialsInput,
   RequestEmailVerificationInput,
@@ -29,12 +31,14 @@ import type {
   ResetPasswordInput,
   VerifyChallengeInput,
   VerifyPhoneChallengeInput,
+  VerifyTwoFactorInput,
 } from '@vibe-planners/shared-validations';
 import { PrismaService } from '../../common/prisma/prisma.service.js';
 import type { IdentityEmailSender } from './ports/identity-email-sender.js';
 import { IDENTITY_EMAIL_SENDER } from './ports/identity-email-sender.js';
 import type { IdentitySmsSender } from './ports/identity-sms-sender.js';
 import { IDENTITY_SMS_SENDER } from './ports/identity-sms-sender.js';
+import { TwoFactorService } from './two-factor/two-factor.service.js';
 
 @Injectable()
 export class IdentityService {
@@ -48,6 +52,7 @@ export class IdentityService {
     private readonly emailSender: IdentityEmailSender,
     @Inject(IDENTITY_SMS_SENDER)
     private readonly smsSender: IdentitySmsSender,
+    private readonly twoFactor: TwoFactorService,
   ) {}
 
   async register(input: RegisterWithCredentialsInput) {
@@ -125,7 +130,7 @@ export class IdentityService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.createSession(user.id);
+    return this.completePrimaryAuthentication(user);
   }
 
   async requestPhoneChallenge(input: RequestPhoneChallengeInput) {
@@ -202,7 +207,7 @@ export class IdentityService {
     });
 
     if (purpose === DatabaseChallengePurpose.PHONE_LOGIN) {
-      return this.createSession(user.id);
+      return this.completePrimaryAuthentication(user);
     }
 
     return {
@@ -329,6 +334,108 @@ export class IdentityService {
     return { passwordChanged: true };
   }
 
+  async createOrganization(userId: string, input: CreateOrganizationInput) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { status: true },
+    });
+    if (user?.status !== DatabaseAccountStatus.ACTIVE) {
+      throw new UnauthorizedException('An active account is required to create an organization');
+    }
+
+    return this.prisma.$transaction(async (transaction) => {
+      const tenant = await transaction.tenant.create({
+        data: { name: input.name },
+        select: { id: true, name: true },
+      });
+      const membership = await transaction.organizationMembership.create({
+        data: {
+          tenantId: tenant.id,
+          userId,
+          role: DatabaseOrganizationRole.OWNER,
+        },
+        select: { id: true, tenantId: true, userId: true, role: true },
+      });
+      return { organization: tenant, membership };
+    });
+  }
+
+  async beginTwoFactorEnrollment(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, phone: true, twoFactorEnabled: true },
+    });
+    if (!user) {
+      throw new UnauthorizedException('Authenticated identity is not available');
+    }
+    if (user.twoFactorEnabled) {
+      throw new ConflictException('Two-factor authentication is already enabled');
+    }
+
+    const { secret, otpauthUrl } = this.twoFactor.generateSecret(
+      user.email ?? user.phone ?? user.id,
+    );
+    const encryptedSecret = this.twoFactor.encryptSecret(secret);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { twoFactorSecret: encryptedSecret, twoFactorEnabled: false },
+    });
+    return { secret, otpauthUrl };
+  }
+
+  async confirmTwoFactorEnrollment(userId: string, code: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { twoFactorSecret: true, twoFactorEnabled: true },
+    });
+    if (!user?.twoFactorSecret) {
+      throw new UnauthorizedException('Two-factor enrollment has not been started');
+    }
+    if (user.twoFactorEnabled) {
+      throw new ConflictException('Two-factor authentication is already enabled');
+    }
+
+    const secret = this.twoFactor.decryptSecret(user.twoFactorSecret);
+    if (!this.twoFactor.verifyCode(secret, code)) {
+      throw new UnauthorizedException('Invalid two-factor code');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { twoFactorEnabled: true },
+    });
+    return { twoFactorEnabled: true };
+  }
+
+  async verifyTwoFactor(input: VerifyTwoFactorInput) {
+    let challenge: { sub?: string; purpose?: string };
+    try {
+      challenge = this.jwt.verify(input.challengeToken);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired two-factor challenge');
+    }
+    if (!challenge.sub || challenge.purpose !== 'two_factor') {
+      throw new UnauthorizedException('Invalid or expired two-factor challenge');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: challenge.sub } });
+    if (
+      !user ||
+      user.status !== DatabaseAccountStatus.ACTIVE ||
+      !user.twoFactorEnabled ||
+      !user.twoFactorSecret
+    ) {
+      throw new UnauthorizedException('Two-factor authentication is not enabled');
+    }
+
+    const secret = this.twoFactor.decryptSecret(user.twoFactorSecret);
+    if (!this.twoFactor.verifyCode(secret, input.code)) {
+      throw new UnauthorizedException('Invalid two-factor code');
+    }
+
+    return this.createSession(user.id, true);
+  }
+
   async refreshSession(input: RefreshSessionInput) {
     const now = new Date();
     const tokenHash = this.hashRefreshToken(input.refreshToken);
@@ -371,6 +478,7 @@ export class IdentityService {
           familyId: currentSession.familyId,
           tokenHash: this.hashRefreshToken(nextRefreshToken),
           expiresAt: this.refreshTokenExpiry(now),
+          twoFactorVerified: currentSession.twoFactorVerified,
         },
         select: { id: true },
       });
@@ -381,7 +489,12 @@ export class IdentityService {
       throw new UnauthorizedException('Refresh token reuse detected');
     }
 
-    return this.sessionTokens(currentSession.userId, nextSession.id, nextRefreshToken);
+    return this.sessionTokens(
+      currentSession.userId,
+      nextSession.id,
+      nextRefreshToken,
+      currentSession.twoFactorVerified,
+    );
   }
 
   async logout(userId: string, sessionId: string) {
@@ -558,7 +671,31 @@ export class IdentityService {
     return Number.isInteger(value) && value > 0 ? value : fallback;
   }
 
-  private async createSession(userId: string) {
+  private async completePrimaryAuthentication(user: {
+    id: string;
+    twoFactorEnabled: boolean;
+    twoFactorSecret: string | null;
+  }) {
+    const adminMembership = await this.prisma.organizationMembership.findFirst({
+      where: { userId: user.id, role: DatabaseOrganizationRole.ADMIN },
+      select: { id: true },
+    });
+    if (adminMembership && (!user.twoFactorEnabled || !user.twoFactorSecret)) {
+      throw new UnauthorizedException('Administrator access requires TOTP enrollment');
+    }
+    if (user.twoFactorEnabled) {
+      if (!user.twoFactorSecret) {
+        throw new UnauthorizedException('Two-factor secret is not available');
+      }
+      return {
+        twoFactorRequired: true,
+        challengeToken: this.jwt.sign({ sub: user.id, purpose: 'two_factor' }, { expiresIn: '5m' }),
+      };
+    }
+    return this.createSession(user.id);
+  }
+
+  private async createSession(userId: string, twoFactorVerified = false) {
     const refreshToken = randomBytes(32).toString('base64url');
     const now = new Date();
     const session = await this.prisma.authSession.create({
@@ -567,15 +704,21 @@ export class IdentityService {
         familyId: randomUUID(),
         tokenHash: this.hashRefreshToken(refreshToken),
         expiresAt: this.refreshTokenExpiry(now),
+        twoFactorVerified,
       },
       select: { id: true },
     });
-    return this.sessionTokens(userId, session.id, refreshToken);
+    return this.sessionTokens(userId, session.id, refreshToken, twoFactorVerified);
   }
 
-  private sessionTokens(userId: string, sessionId: string, refreshToken: string) {
+  private sessionTokens(
+    userId: string,
+    sessionId: string,
+    refreshToken: string,
+    twoFactorVerified: boolean,
+  ) {
     return {
-      accessToken: this.jwt.sign({ sub: userId, sessionId }),
+      accessToken: this.jwt.sign({ sub: userId, sessionId, twoFactorVerified }),
       refreshToken,
     };
   }

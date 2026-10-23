@@ -27,6 +27,7 @@ describe('BookingController', () => {
   const windowId = '00000000-0000-0000-0000-000000000002';
   const blockId = '00000000-0000-0000-0000-000000000003';
   const provider: JwtPayload = { sub: 'provider-1', tenantId: 'tenant-1', role: 'PROVIDER' };
+  const owner: JwtPayload = { sub: 'owner-1', tenantId: 'tenant-1', role: 'OWNER' };
   const client: JwtPayload = { sub: 'client-1', tenantId: 'tenant-1', role: 'CLIENT' };
   const reservationId = '00000000-0000-0000-0000-000000000004';
   const requestFor = (user?: JwtPayload) =>
@@ -117,6 +118,19 @@ describe('BookingController', () => {
     expect(mockBookingService.listListingReservations).toHaveBeenCalledWith(
       'tenant-1',
       'provider-1',
+      listingId,
+    );
+  });
+
+  it('allows an organization owner to manage provider reservations', async () => {
+    mockBookingService.listListingReservations.mockResolvedValue([{ id: reservationId }]);
+
+    await expect(controller.listListingReservations(requestFor(owner), listingId)).resolves.toEqual(
+      [{ id: reservationId }],
+    );
+    expect(mockBookingService.listListingReservations).toHaveBeenCalledWith(
+      'tenant-1',
+      'owner-1',
       listingId,
     );
   });

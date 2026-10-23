@@ -2,12 +2,15 @@ import {
   BadRequestException,
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Param,
   Post,
   Put,
   Query,
   Req,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { DirectoryService } from './directory.service.js';
 import type { TenantRequest } from '../../common/middleware/tenant.middleware.js';
@@ -17,6 +20,10 @@ import {
   listingFilterSchema,
   createPromotionSchema,
 } from '@vibe-planners/shared-validations';
+import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard.js';
+import type { OrganizationJwtPayload } from '../identity/strategies/jwt.strategy.js';
+
+type AuthenticatedTenantRequest = TenantRequest & { user?: OrganizationJwtPayload };
 
 @Controller('directory')
 export class DirectoryController {
@@ -61,16 +68,9 @@ export class DirectoryController {
   }
 
   @Post('listings')
-  async createListing(@Req() req: TenantRequest, @Body() body: unknown) {
-    const tenantId = req.tenantId || (req.headers['x-tenant-id'] as string);
-    if (!tenantId) {
-      throw new BadRequestException('x-tenant-id header is required');
-    }
-
-    const ownerId = (req.headers['x-user-id'] as string) || (body as { ownerId?: string })?.ownerId;
-    if (!ownerId) {
-      throw new BadRequestException('x-user-id header or ownerId in body is required');
-    }
+  @UseGuards(JwtAuthGuard)
+  async createListing(@Req() req: AuthenticatedTenantRequest, @Body() body: unknown) {
+    const { tenantId, userId } = this.requireProviderPrincipal(req);
 
     const parsedBody = createListingSchema.safeParse(body);
     if (!parsedBody.success) {
@@ -80,15 +80,17 @@ export class DirectoryController {
       });
     }
 
-    return this.directoryService.createListing(tenantId, ownerId, parsedBody.data);
+    return this.directoryService.createListing(tenantId, userId, parsedBody.data);
   }
 
   @Put('listings/:id')
-  async updateListing(@Req() req: TenantRequest, @Param('id') id: string, @Body() body: unknown) {
-    const tenantId = req.tenantId || (req.headers['x-tenant-id'] as string);
-    if (!tenantId) {
-      throw new BadRequestException('x-tenant-id header is required');
-    }
+  @UseGuards(JwtAuthGuard)
+  async updateListing(
+    @Req() req: AuthenticatedTenantRequest,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    const { tenantId } = this.requireProviderPrincipal(req);
 
     const parsedBody = updateListingSchema.safeParse(body);
     if (!parsedBody.success) {
@@ -102,11 +104,13 @@ export class DirectoryController {
   }
 
   @Post('listings/:id/promotions')
-  async createPromotion(@Req() req: TenantRequest, @Param('id') id: string, @Body() body: unknown) {
-    const tenantId = req.tenantId || (req.headers['x-tenant-id'] as string);
-    if (!tenantId) {
-      throw new BadRequestException('x-tenant-id header is required');
-    }
+  @UseGuards(JwtAuthGuard)
+  async createPromotion(
+    @Req() req: AuthenticatedTenantRequest,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    const { tenantId } = this.requireProviderPrincipal(req);
 
     const parsedBody = createPromotionSchema.safeParse(body);
     if (!parsedBody.success) {
@@ -117,5 +121,16 @@ export class DirectoryController {
     }
 
     return this.directoryService.createPromotion(id, tenantId, parsedBody.data);
+  }
+
+  private requireProviderPrincipal(req: AuthenticatedTenantRequest) {
+    const principal = req.user;
+    if (!principal?.sub || !principal.tenantId || !principal.role) {
+      throw new UnauthorizedException('Authenticated organization context is required');
+    }
+    if (principal.role !== 'OWNER' && principal.role !== 'PROVIDER') {
+      throw new ForbiddenException('Only organization owners and providers can edit listings');
+    }
+    return { tenantId: principal.tenantId, userId: principal.sub };
   }
 }

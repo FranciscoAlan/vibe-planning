@@ -37,10 +37,25 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         revokedAt: null,
         expiresAt: { gt: new Date() },
       },
-      select: { id: true },
+      select: {
+        id: true,
+        twoFactorVerified: true,
+        user: { select: { twoFactorEnabled: true } },
+      },
     });
     if (!activeSession) {
       throw new UnauthorizedException('Session is no longer active');
+    }
+
+    const adminMembership = await this.prisma.organizationMembership.findFirst({
+      where: { userId: payload.sub, role: 'ADMIN' },
+      select: { id: true },
+    });
+    if (
+      adminMembership &&
+      (!activeSession.twoFactorVerified || !activeSession.user.twoFactorEnabled)
+    ) {
+      throw new UnauthorizedException('Administrator access requires a TOTP-verified session');
     }
 
     const principal: JwtPayload = { sub: payload.sub, sessionId: payload.sessionId };

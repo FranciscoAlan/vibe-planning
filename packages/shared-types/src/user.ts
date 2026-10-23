@@ -70,6 +70,7 @@ export interface IAuthSession {
   id: string;
   userId: string;
   familyId: string;
+  twoFactorVerified: boolean;
   expiresAt: string;
   revokedAt: string | null;
   lastUsedAt: string | null;

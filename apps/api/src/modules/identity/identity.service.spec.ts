@@ -33,11 +33,22 @@ describe('IdentityService credential flows', () => {
       findUnique: ReturnType<typeof vi.fn>;
       updateMany: ReturnType<typeof vi.fn>;
     };
+    tenant: { create: ReturnType<typeof vi.fn> };
+    organizationMembership: {
+      create: ReturnType<typeof vi.fn>;
+      findFirst: ReturnType<typeof vi.fn>;
+    };
     $transaction: ReturnType<typeof vi.fn>;
   };
   let emailSender: { sendCode: ReturnType<typeof vi.fn> };
   let smsSender: { sendCode: ReturnType<typeof vi.fn> };
-  let jwt: { sign: ReturnType<typeof vi.fn> };
+  let jwt: { sign: ReturnType<typeof vi.fn>; verify: ReturnType<typeof vi.fn> };
+  let twoFactor: {
+    generateSecret: ReturnType<typeof vi.fn>;
+    encryptSecret: ReturnType<typeof vi.fn>;
+    decryptSecret: ReturnType<typeof vi.fn>;
+    verifyCode: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     prismaMock = {
@@ -58,17 +69,34 @@ describe('IdentityService credential flows', () => {
         findUnique: vi.fn(),
         updateMany: vi.fn(),
       },
+      tenant: { create: vi.fn() },
+      organizationMembership: {
+        create: vi.fn(),
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
       $transaction: vi.fn(),
     };
     prismaMock.$transaction.mockImplementation(async (operation) => operation(prismaMock));
     emailSender = { sendCode: vi.fn().mockResolvedValue(undefined) };
     smsSender = { sendCode: vi.fn().mockResolvedValue(undefined) };
-    jwt = { sign: vi.fn().mockReturnValue('access-token') };
+    jwt = {
+      sign: vi.fn().mockReturnValue('access-token'),
+      verify: vi.fn().mockReturnValue({ sub: 'user-id', purpose: 'two_factor' }),
+    };
+    twoFactor = {
+      generateSecret: vi
+        .fn()
+        .mockReturnValue({ secret: 'totp-secret', otpauthUrl: 'otpauth://test' }),
+      encryptSecret: vi.fn().mockReturnValue('encrypted-totp-secret'),
+      decryptSecret: vi.fn().mockReturnValue('totp-secret'),
+      verifyCode: vi.fn().mockReturnValue(true),
+    };
     service = new IdentityService(
       prismaMock as unknown as PrismaService,
       jwt as unknown as JwtService,
       emailSender as unknown as IdentityEmailSender,
       smsSender as unknown as IdentitySmsSender,
+      twoFactor as never,
     );
   });
 
@@ -178,7 +206,11 @@ describe('IdentityService credential flows', () => {
         code,
       }),
     ).resolves.toEqual({ accessToken: 'access-token', refreshToken: expect.any(String) });
-    expect(jwt.sign).toHaveBeenCalledWith({ sub: user.id, sessionId: 'session-id' });
+    expect(jwt.sign).toHaveBeenCalledWith({
+      sub: user.id,
+      sessionId: 'session-id',
+      twoFactorVerified: false,
+    });
   });
 
   it('consumes a valid phone challenge and rejects replay', async () => {
@@ -273,7 +305,11 @@ describe('IdentityService credential flows', () => {
       password: 'correct-horse-battery',
     });
     expect(result).toEqual({ accessToken: 'access-token', refreshToken: expect.any(String) });
-    expect(jwt.sign).toHaveBeenCalledWith({ sub: 'user-id', sessionId: 'session-id' });
+    expect(jwt.sign).toHaveBeenCalledWith({
+      sub: 'user-id',
+      sessionId: 'session-id',
+      twoFactorVerified: false,
+    });
     const sessionData = prismaMock.authSession.create.mock.calls[0][0].data;
     expect(sessionData.tokenHash).toBe(
       createHash('sha256').update(result.refreshToken).digest('hex'),
@@ -290,6 +326,7 @@ describe('IdentityService credential flows', () => {
       userId: 'user-id',
       familyId,
       revokedAt: null,
+      twoFactorVerified: true,
       expiresAt: new Date(Date.now() + 60_000),
     });
     prismaMock.authSession.updateMany.mockResolvedValue({ count: 1 });
@@ -309,7 +346,12 @@ describe('IdentityService credential flows', () => {
       createHash('sha256').update(result.refreshToken).digest('hex'),
     );
     expect(createData.tokenHash).not.toBe(result.refreshToken);
-    expect(jwt.sign).toHaveBeenCalledWith({ sub: 'user-id', sessionId: 'replacement-session-id' });
+    expect(createData.twoFactorVerified).toBe(true);
+    expect(jwt.sign).toHaveBeenCalledWith({
+      sub: 'user-id',
+      sessionId: 'replacement-session-id',
+      twoFactorVerified: true,
+    });
   });
 
   it('revokes the active session family when a rotated refresh token is reused', async () => {
@@ -346,6 +388,126 @@ describe('IdentityService credential flows', () => {
       2,
       expect.objectContaining({ where: { userId: 'user-id', revokedAt: null } }),
     );
+  });
+
+  it('creates an organization and OWNER membership in one transaction', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ status: AccountStatus.ACTIVE });
+    prismaMock.tenant.create.mockResolvedValue({ id: 'tenant-id', name: 'Studio Norte' });
+    prismaMock.organizationMembership.create.mockResolvedValue({
+      id: 'membership-id',
+      tenantId: 'tenant-id',
+      userId: 'user-id',
+      role: 'OWNER',
+    });
+
+    await expect(service.createOrganization('user-id', { name: 'Studio Norte' })).resolves.toEqual({
+      organization: { id: 'tenant-id', name: 'Studio Norte' },
+      membership: {
+        id: 'membership-id',
+        tenantId: 'tenant-id',
+        userId: 'user-id',
+        role: 'OWNER',
+      },
+    });
+    expect(prismaMock.organizationMembership.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { tenantId: 'tenant-id', userId: 'user-id', role: 'OWNER' },
+      }),
+    );
+  });
+
+  it('stores an encrypted TOTP secret and enables it only after code verification', async () => {
+    prismaMock.user.findUnique
+      .mockResolvedValueOnce({
+        id: 'user-id',
+        email: 'host@example.com',
+        phone: '+525512345678',
+        twoFactorEnabled: false,
+      })
+      .mockResolvedValueOnce({ twoFactorSecret: 'encrypted-totp-secret', twoFactorEnabled: false });
+    prismaMock.user.update.mockResolvedValue({});
+
+    await expect(service.beginTwoFactorEnrollment('user-id')).resolves.toEqual({
+      secret: 'totp-secret',
+      otpauthUrl: 'otpauth://test',
+    });
+    expect(prismaMock.user.update).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        data: { twoFactorSecret: 'encrypted-totp-secret', twoFactorEnabled: false },
+      }),
+    );
+
+    await expect(service.confirmTwoFactorEnrollment('user-id', '123456')).resolves.toEqual({
+      twoFactorEnabled: true,
+    });
+    expect(twoFactor.decryptSecret).toHaveBeenCalledWith('encrypted-totp-secret');
+    expect(prismaMock.user.update).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ data: { twoFactorEnabled: true } }),
+    );
+  });
+
+  it('requires TOTP before creating a session for an ADMIN login', async () => {
+    const passwordHash = await argon2.hash('correct-horse-battery', { type: argon2.argon2id });
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'admin-id',
+      email: 'admin@example.com',
+      passwordHash,
+      status: AccountStatus.ACTIVE,
+      emailVerifiedAt: new Date(),
+      phoneVerifiedAt: new Date(),
+      twoFactorEnabled: true,
+      twoFactorSecret: 'encrypted-totp-secret',
+    });
+    prismaMock.organizationMembership.findFirst.mockResolvedValue({ id: 'admin-membership' });
+
+    await expect(
+      service.login({ email: 'admin@example.com', password: 'correct-horse-battery' }),
+    ).resolves.toEqual({ twoFactorRequired: true, challengeToken: 'access-token' });
+    expect(jwt.sign).toHaveBeenCalledWith(
+      { sub: 'admin-id', purpose: 'two_factor' },
+      { expiresIn: '5m' },
+    );
+    expect(prismaMock.authSession.create).not.toHaveBeenCalled();
+  });
+
+  it('issues an MFA-verified session only after validating the challenge and TOTP code', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'admin-id',
+      status: AccountStatus.ACTIVE,
+      twoFactorEnabled: true,
+      twoFactorSecret: 'encrypted-totp-secret',
+    });
+
+    await expect(
+      service.verifyTwoFactor({ challengeToken: 'two-factor-challenge', code: '123456' }),
+    ).resolves.toEqual({ accessToken: 'access-token', refreshToken: expect.any(String) });
+    expect(jwt.verify).toHaveBeenCalledWith('two-factor-challenge');
+    expect(twoFactor.verifyCode).toHaveBeenCalledWith('totp-secret', '123456');
+    expect(prismaMock.authSession.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ twoFactorVerified: true }) }),
+    );
+  });
+
+  it('rejects an ADMIN login if TOTP was not enrolled before promotion', async () => {
+    const passwordHash = await argon2.hash('correct-horse-battery', { type: argon2.argon2id });
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'admin-id',
+      email: 'admin@example.com',
+      passwordHash,
+      status: AccountStatus.ACTIVE,
+      emailVerifiedAt: new Date(),
+      phoneVerifiedAt: new Date(),
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+    });
+    prismaMock.organizationMembership.findFirst.mockResolvedValue({ id: 'admin-membership' });
+
+    await expect(
+      service.login({ email: 'admin@example.com', password: 'correct-horse-battery' }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(prismaMock.authSession.create).not.toHaveBeenCalled();
   });
 
   it('rejects invalid credentials with the same response as an unknown account', async () => {

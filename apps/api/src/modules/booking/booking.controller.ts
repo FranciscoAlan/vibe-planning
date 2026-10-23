@@ -281,12 +281,16 @@ export class BookingController {
   }
 
   private requireRole(principal: OrganizationJwtPayload, role: 'PROVIDER' | 'CLIENT'): void {
-    if (principal.role !== role) {
+    const hasRole = principal.role === role || (role === 'PROVIDER' && principal.role === 'OWNER');
+    if (!hasRole) {
       throw new ForbiddenException(`Only ${role.toLowerCase()}s can perform this operation`);
     }
   }
 
   private requireCustomerOrProvider(principal: OrganizationJwtPayload): 'CLIENT' | 'PROVIDER' {
+    if (principal.role === 'OWNER') {
+      return 'PROVIDER';
+    }
     if (principal.role !== 'CLIENT' && principal.role !== 'PROVIDER') {
       throw new ForbiddenException('Only clients and providers can view availability');
     }

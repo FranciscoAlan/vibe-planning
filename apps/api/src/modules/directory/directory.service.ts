@@ -140,7 +140,6 @@ export class DirectoryService {
             id: true,
             email: true,
             phone: true,
-            role: true,
           },
         },
       },

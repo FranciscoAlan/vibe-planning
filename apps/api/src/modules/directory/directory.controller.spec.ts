@@ -65,15 +65,38 @@ describe('DirectoryController', () => {
   });
 
   describe('createListing', () => {
-    it('validates schema and rejects invalid payload', async () => {
-      const mockReq = {
-        tenantId: 'tenant-123',
-        headers: { 'x-user-id': 'user-1' },
-      } as unknown as TenantRequest;
+    const ownerRequest = {
+      tenantId: 'tenant-123',
+      headers: {},
+      user: { sub: 'owner-1', tenantId: 'tenant-123', role: 'OWNER' },
+    } as unknown as TenantRequest;
 
-      // Missing required fields
-      await expect(controller.createListing(mockReq, { title: 'No' })).rejects.toThrow(
+    it('validates schema and rejects invalid payload', async () => {
+      await expect(controller.createListing(ownerRequest, { title: 'No' })).rejects.toThrow(
         BadRequestException,
+      );
+    });
+
+    it('uses the authenticated owner and tenant instead of client-supplied identity', async () => {
+      const body = {
+        ownerId: 'attacker-selected-user',
+        categoryId: '00000000-0000-4000-8000-000000000001',
+        subcategoryId: '00000000-0000-4000-8000-000000000002',
+        title: 'Jardín para eventos',
+        description: 'Espacio para eventos sociales y celebraciones.',
+        city: 'Puebla',
+        state: 'Puebla',
+        basePrice: 25000,
+      };
+      mockDirectoryService.createListing.mockResolvedValue({ id: 'listing-1' });
+
+      await expect(controller.createListing(ownerRequest, body)).resolves.toEqual({
+        id: 'listing-1',
+      });
+      expect(mockDirectoryService.createListing).toHaveBeenCalledWith(
+        'tenant-123',
+        'owner-1',
+        expect.not.objectContaining({ ownerId: 'attacker-selected-user' }),
       );
     });
   });

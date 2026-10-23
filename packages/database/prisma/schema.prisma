@@ -127,6 +127,7 @@ model AuthSession {
   familyId   String    @map("family_id") @db.Uuid
   tokenHash  String    @unique @map("token_hash")
   expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
+  twoFactorVerified Boolean @default(false) @map("two_factor_verified")
   revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
   lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz(6)
   createdAt  DateTime  @default(now()) @map("created_at")

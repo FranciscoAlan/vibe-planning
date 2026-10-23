@@ -10,7 +10,10 @@ describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
   let prismaMock: {
     authSession: { findFirst: ReturnType<typeof vi.fn> };
-    organizationMembership: { findUnique: ReturnType<typeof vi.fn> };
+    organizationMembership: {
+      findFirst: ReturnType<typeof vi.fn>;
+      findUnique: ReturnType<typeof vi.fn>;
+    };
     userProfile: { findUnique: ReturnType<typeof vi.fn> };
   };
 
@@ -19,8 +22,17 @@ describe('JwtStrategy', () => {
 
   beforeEach(() => {
     prismaMock = {
-      authSession: { findFirst: vi.fn().mockResolvedValue({ id: 'session-id' }) },
-      organizationMembership: { findUnique: vi.fn() },
+      authSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'session-id',
+          twoFactorVerified: false,
+          user: { twoFactorEnabled: false },
+        }),
+      },
+      organizationMembership: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        findUnique: vi.fn(),
+      },
       userProfile: { findUnique: vi.fn() },
     };
     strategy = new JwtStrategy(prismaMock as unknown as PrismaService);
@@ -42,6 +54,38 @@ describe('JwtStrategy', () => {
     expect(prismaMock.organizationMembership.findUnique).toHaveBeenCalledWith({
       where: { tenantId_userId: { tenantId, userId: payload.sub } },
       select: { role: true },
+    });
+  });
+
+  it('rejects an ADMIN membership when the session did not verify TOTP', async () => {
+    prismaMock.organizationMembership.findFirst.mockResolvedValue({ id: 'admin-membership' });
+    prismaMock.organizationMembership.findUnique.mockResolvedValue({ role: 'ADMIN' });
+
+    await expect(strategy.validate(requestWithTenant(tenantId), payload)).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+  });
+
+  it('rejects an ADMIN session without TOTP even when no tenant header is present', async () => {
+    prismaMock.organizationMembership.findFirst.mockResolvedValue({ id: 'admin-membership' });
+
+    await expect(strategy.validate(requestWithTenant(), payload)).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+  });
+
+  it('allows an ADMIN membership only with a TOTP-verified session', async () => {
+    prismaMock.organizationMembership.findFirst.mockResolvedValue({ id: 'admin-membership' });
+    prismaMock.organizationMembership.findUnique.mockResolvedValue({ role: 'ADMIN' });
+    prismaMock.authSession.findFirst.mockResolvedValue({
+      id: 'session-id',
+      twoFactorVerified: true,
+      user: { twoFactorEnabled: true },
+    });
+
+    await expect(strategy.validate(requestWithTenant(tenantId), payload)).resolves.toMatchObject({
+      tenantId,
+      role: 'ADMIN',
     });
   });
 

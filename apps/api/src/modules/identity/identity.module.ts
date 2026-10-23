@@ -4,6 +4,7 @@ import { PassportModule } from '@nestjs/passport';
 import { IdentityController } from './identity.controller.js';
 import { IdentityService } from './identity.service.js';
 import { TwoFactorService } from './two-factor/two-factor.service.js';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { PrismaService } from '../../common/prisma/prisma.service.js';
 import { IntegrationsModule } from '../../integrations/integrations.module.js';
 import { IDENTITY_EMAIL_SENDER } from './ports/identity-email-sender.js';
@@ -31,6 +32,7 @@ import { PhoneOtpStrategy } from './strategies/phone-otp.strategy.js';
   controllers: [IdentityController],
   providers: [
     IdentityService,
+    JwtAuthGuard,
     PrismaService,
     ResendIdentityEmailSender,
     TwilioIdentitySmsSender,

@@ -42,6 +42,11 @@ export const loginWithCredentialsSchema = z.object({
 });
 
 export const verifyTwoFactorSchema = z.object({
+  challengeToken: z.string().min(1),
+  code: verificationCodeSchema,
+});
+
+export const confirmTwoFactorEnrollmentSchema = z.object({
   code: verificationCodeSchema,
 });
 
@@ -88,6 +93,7 @@ export type RequestPhoneChallengeInput = z.infer<typeof requestPhoneChallengeSch
 export type RegisterWithProviderInput = z.infer<typeof registerWithProviderSchema>;
 export type LoginWithCredentialsInput = z.infer<typeof loginWithCredentialsSchema>;
 export type VerifyTwoFactorInput = z.infer<typeof verifyTwoFactorSchema>;
+export type ConfirmTwoFactorEnrollmentInput = z.infer<typeof confirmTwoFactorEnrollmentSchema>;
 export type VerifyChallengeInput = z.infer<typeof verifyChallengeSchema>;
 export type VerifyPhoneChallengeInput = z.infer<typeof verifyPhoneChallengeSchema>;
 export type RequestEmailVerificationInput = z.infer<typeof requestEmailVerificationSchema>;
