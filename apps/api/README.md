@@ -31,6 +31,57 @@
 $ npm install
 ```
 
+## Environment Variables
+
+The application requires the following environment variables to be set in the `.env` file located in the `apps/api` directory:
+
+- `NODE_ENV`: The environment in which the application is running (e.g., `development`, `production`).
+- `PORT`: The port on which the application will listen.
+- `DATABASE_URL`: The connection URL for the PostgreSQL database.
+- `REDIS_URL`: The connection URL for the Redis instance.
+- `BOOKING_DEFAULT_HOLD_HOURS`: Default hold duration for bookings.
+- `JWT_SECRET`: Secret key for signing JWT tokens.
+- `JWT_EXPIRES_IN`: Expiration time for JWT tokens.
+- `IDENTITY_REFRESH_TTL_DAYS`: Time-to-live for identity refresh tokens.
+- `IDENTITY_2FA_ENCRYPTION_KEY`: Base64-encoded 32-byte key for AES-256-GCM TOTP secret encryption.
+- `GOOGLE_CLIENT_ID`: Google OAuth client ID.
+- `GOOGLE_CLIENT_SECRET`: Google OAuth client secret.
+- `GOOGLE_CALLBACK_URL`: Google OAuth callback URL.
+- `FACEBOOK_APP_ID`: Facebook OAuth app ID.
+- `FACEBOOK_APP_SECRET`: Facebook OAuth app secret.
+- `FACEBOOK_CALLBACK_URL`: Facebook OAuth callback URL.
+- `ELASTICSEARCH_NODE`: Elasticsearch node URL.
+- `ELASTICSEARCH_USERNAME`: Elasticsearch username.
+- `ELASTICSEARCH_PASSWORD`: Elasticsearch password.
+- `STRIPE_SECRET_KEY`: Stripe secret key.
+- `TWILIO_ACCOUNT_SID`: Twilio account SID.
+- `TWILIO_AUTH_TOKEN`: Twilio auth token.
+- `TWILIO_CLIENT_SECRET`: Twilio client secret.
+- `TWILIO_FROM_NUMBER`: Twilio from number.
+- `RESEND_API_KEY`: Resend API key.
+- `RESEND_FROM_EMAIL`: Resend from email.
+- `IDENTITY_PHONE_TTL_MINUTES`: Time-to-live for identity phone verification codes.
+- `IDENTITY_PHONE_MAX_ATTEMPTS`: Maximum attempts for identity phone verification.
+- `IDENTITY_PHONE_RESEND_SECONDS`: Resend interval for identity phone verification codes.
+- `IDENTITY_EMAIL_TTL_MINUTES`: Time-to-live for identity email verification codes.
+- `IDENTITY_EMAIL_MAX_ATTEMPTS`: Maximum attempts for identity email verification.
+- `IDENTITY_EMAIL_RESEND_SECONDS`: Resend interval for identity email verification codes.
+- `FIREBASE_PROJECT_ID`: Firebase project ID.
+- `FIREBASE_CLIENT_EMAIL`: Firebase client email.
+- `FIREBASE_PRIVATE_KEY`: Firebase private key.
+- `CLOUDINARY_CLOUD_NAME`: Cloudinary cloud name.
+- `CLOUDINARY_API_KEY`: Cloudinary API key.
+- `CLOUDINARY_API_SECRET`: Cloudinary API secret.
+
+### Getting Variables
+
+Use Doppler to manage and inject environment variables.
+
+1. Install the Doppler CLI: `npm install -g @dopplerhq/cli`
+2. Authenticate with Doppler: `doppler login`
+3. Set the project and config: `doppler setup --project <project> --config <config>`
+4. Run your application with Doppler: `doppler run -- npm run start`
+
 ## Compile and run the project
 
 ```bash
