@@ -8,7 +8,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { randomBytes, randomInt } from 'node:crypto';
+import { createHash, randomBytes, randomInt, randomUUID } from 'node:crypto';
 import * as argon2 from 'argon2';
 import {
   AccountStatus as DatabaseAccountStatus,
@@ -25,6 +25,7 @@ import type {
   RequestEmailVerificationInput,
   RequestPhoneChallengeInput,
   RequestPasswordResetInput,
+  RefreshSessionInput,
   ResetPasswordInput,
   VerifyChallengeInput,
   VerifyPhoneChallengeInput,
@@ -34,7 +35,6 @@ import type { IdentityEmailSender } from './ports/identity-email-sender.js';
 import { IDENTITY_EMAIL_SENDER } from './ports/identity-email-sender.js';
 import type { IdentitySmsSender } from './ports/identity-sms-sender.js';
 import { IDENTITY_SMS_SENDER } from './ports/identity-sms-sender.js';
-import type { JwtPayload } from './strategies/jwt.strategy.js';
 
 @Injectable()
 export class IdentityService {
@@ -110,7 +110,7 @@ export class IdentityService {
     };
   }
 
-  async login(input: LoginWithCredentialsInput): Promise<{ accessToken: string }> {
+  async login(input: LoginWithCredentialsInput) {
     const user = await this.prisma.user.findUnique({ where: { email: input.email } });
     const passwordHash = user?.passwordHash ?? (await this.dummyPasswordHash);
     const passwordMatches = await argon2.verify(passwordHash, input.password);
@@ -125,7 +125,7 @@ export class IdentityService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return { accessToken: this.jwt.sign({ sub: user.id }) };
+    return this.createSession(user.id);
   }
 
   async requestPhoneChallenge(input: RequestPhoneChallengeInput) {
@@ -202,7 +202,7 @@ export class IdentityService {
     });
 
     if (purpose === DatabaseChallengePurpose.PHONE_LOGIN) {
-      return { accessToken: this.jwt.sign({ sub: user.id }) };
+      return this.createSession(user.id);
     }
 
     return {
@@ -329,9 +329,77 @@ export class IdentityService {
     return { passwordChanged: true };
   }
 
-  /** Issues the access token for an already-authenticated user. */
-  issueToken(payload: JwtPayload): { accessToken: string } {
-    return { accessToken: this.jwt.sign(payload) };
+  async refreshSession(input: RefreshSessionInput) {
+    const now = new Date();
+    const tokenHash = this.hashRefreshToken(input.refreshToken);
+    const currentSession = await this.prisma.authSession.findUnique({ where: { tokenHash } });
+
+    if (!currentSession) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    if (currentSession.revokedAt) {
+      await this.revokeSessionFamily(currentSession.familyId, now);
+      throw new UnauthorizedException('Refresh token reuse detected');
+    }
+
+    if (currentSession.expiresAt <= now) {
+      await this.prisma.authSession.updateMany({
+        where: { id: currentSession.id, revokedAt: null },
+        data: { revokedAt: now },
+      });
+      throw new UnauthorizedException('Refresh token expired');
+    }
+
+    const nextRefreshToken = randomBytes(32).toString('base64url');
+    const nextSession = await this.prisma.$transaction(async (transaction) => {
+      const rotated = await transaction.authSession.updateMany({
+        where: {
+          id: currentSession.id,
+          revokedAt: null,
+          expiresAt: { gt: now },
+        },
+        data: { revokedAt: now, lastUsedAt: now },
+      });
+      if (rotated.count !== 1) {
+        return null;
+      }
+
+      return transaction.authSession.create({
+        data: {
+          userId: currentSession.userId,
+          familyId: currentSession.familyId,
+          tokenHash: this.hashRefreshToken(nextRefreshToken),
+          expiresAt: this.refreshTokenExpiry(now),
+        },
+        select: { id: true },
+      });
+    });
+
+    if (!nextSession) {
+      await this.revokeSessionFamily(currentSession.familyId, now);
+      throw new UnauthorizedException('Refresh token reuse detected');
+    }
+
+    return this.sessionTokens(currentSession.userId, nextSession.id, nextRefreshToken);
+  }
+
+  async logout(userId: string, sessionId: string) {
+    const now = new Date();
+    await this.prisma.authSession.updateMany({
+      where: { id: sessionId, userId, revokedAt: null },
+      data: { revokedAt: now, lastUsedAt: now },
+    });
+    return { loggedOut: true };
+  }
+
+  async logoutAll(userId: string) {
+    const now = new Date();
+    const result = await this.prisma.authSession.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: now, lastUsedAt: now },
+    });
+    return { revokedSessions: result.count };
   }
 
   private maxChallengeAttempts(channel: DatabaseChallengeChannel): number {
@@ -488,5 +556,43 @@ export class IdentityService {
   private positiveIntegerEnv(name: string, fallback: number): number {
     const value = Number(process.env[name]);
     return Number.isInteger(value) && value > 0 ? value : fallback;
+  }
+
+  private async createSession(userId: string) {
+    const refreshToken = randomBytes(32).toString('base64url');
+    const now = new Date();
+    const session = await this.prisma.authSession.create({
+      data: {
+        userId,
+        familyId: randomUUID(),
+        tokenHash: this.hashRefreshToken(refreshToken),
+        expiresAt: this.refreshTokenExpiry(now),
+      },
+      select: { id: true },
+    });
+    return this.sessionTokens(userId, session.id, refreshToken);
+  }
+
+  private sessionTokens(userId: string, sessionId: string, refreshToken: string) {
+    return {
+      accessToken: this.jwt.sign({ sub: userId, sessionId }),
+      refreshToken,
+    };
+  }
+
+  private hashRefreshToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
+  private refreshTokenExpiry(now: Date): Date {
+    const days = this.positiveIntegerEnv('IDENTITY_REFRESH_TTL_DAYS', 30);
+    return new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  }
+
+  private async revokeSessionFamily(familyId: string, revokedAt: Date): Promise<void> {
+    await this.prisma.authSession.updateMany({
+      where: { familyId, revokedAt: null },
+      data: { revokedAt },
+    });
   }
 }

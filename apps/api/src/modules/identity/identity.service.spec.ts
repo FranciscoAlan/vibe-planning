@@ -1,5 +1,6 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { createHash } from 'node:crypto';
 import { AccountStatus, ChallengeChannel, ChallengePurpose } from '@vibe-planners/database';
 import {
   ChallengePurpose as SharedChallengePurpose,
@@ -27,6 +28,11 @@ describe('IdentityService credential flows', () => {
       create: ReturnType<typeof vi.fn>;
       updateMany: ReturnType<typeof vi.fn>;
     };
+    authSession: {
+      create: ReturnType<typeof vi.fn>;
+      findUnique: ReturnType<typeof vi.fn>;
+      updateMany: ReturnType<typeof vi.fn>;
+    };
     $transaction: ReturnType<typeof vi.fn>;
   };
   let emailSender: { sendCode: ReturnType<typeof vi.fn> };
@@ -45,6 +51,11 @@ describe('IdentityService credential flows', () => {
         findFirst: vi.fn(),
         findUnique: vi.fn(),
         create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      authSession: {
+        create: vi.fn().mockResolvedValue({ id: 'session-id' }),
+        findUnique: vi.fn(),
         updateMany: vi.fn(),
       },
       $transaction: vi.fn(),
@@ -166,8 +177,8 @@ describe('IdentityService credential flows', () => {
         purpose: SharedChallengePurpose.PHONE_LOGIN,
         code,
       }),
-    ).resolves.toEqual({ accessToken: 'access-token' });
-    expect(jwt.sign).toHaveBeenCalledWith({ sub: user.id });
+    ).resolves.toEqual({ accessToken: 'access-token', refreshToken: expect.any(String) });
+    expect(jwt.sign).toHaveBeenCalledWith({ sub: user.id, sessionId: 'session-id' });
   });
 
   it('consumes a valid phone challenge and rejects replay', async () => {
@@ -206,6 +217,7 @@ describe('IdentityService credential flows', () => {
     };
     await expect(service.verifyPhoneChallenge(input)).resolves.toEqual({
       accessToken: 'access-token',
+      refreshToken: expect.any(String),
     });
     await expect(service.verifyPhoneChallenge(input)).rejects.toBeInstanceOf(UnauthorizedException);
     expect(jwt.sign).toHaveBeenCalledOnce();
@@ -256,10 +268,84 @@ describe('IdentityService credential flows', () => {
       phoneVerifiedAt: new Date(),
     });
 
+    const result = await service.login({
+      email: 'host@example.com',
+      password: 'correct-horse-battery',
+    });
+    expect(result).toEqual({ accessToken: 'access-token', refreshToken: expect.any(String) });
+    expect(jwt.sign).toHaveBeenCalledWith({ sub: 'user-id', sessionId: 'session-id' });
+    const sessionData = prismaMock.authSession.create.mock.calls[0][0].data;
+    expect(sessionData.tokenHash).toBe(
+      createHash('sha256').update(result.refreshToken).digest('hex'),
+    );
+    expect(sessionData.tokenHash).not.toBe(result.refreshToken);
+  });
+
+  it('rotates refresh tokens and persists only the replacement hash', async () => {
+    const refreshToken = 'old-refresh-token-which-is-long-enough-to-be-valid';
+    const familyId = 'family-id';
+    const sessionId = 'session-id';
+    prismaMock.authSession.findUnique.mockResolvedValue({
+      id: sessionId,
+      userId: 'user-id',
+      familyId,
+      revokedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    prismaMock.authSession.updateMany.mockResolvedValue({ count: 1 });
+    prismaMock.authSession.create.mockResolvedValue({ id: 'replacement-session-id' });
+
+    const result = await service.refreshSession({ refreshToken });
+    const createData = prismaMock.authSession.create.mock.calls[0][0].data;
+
+    expect(result).toEqual({ accessToken: 'access-token', refreshToken: expect.any(String) });
+    expect(prismaMock.authSession.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: sessionId, revokedAt: null }),
+      }),
+    );
+    expect(createData.familyId).toBe(familyId);
+    expect(createData.tokenHash).toBe(
+      createHash('sha256').update(result.refreshToken).digest('hex'),
+    );
+    expect(createData.tokenHash).not.toBe(result.refreshToken);
+    expect(jwt.sign).toHaveBeenCalledWith({ sub: 'user-id', sessionId: 'replacement-session-id' });
+  });
+
+  it('revokes the active session family when a rotated refresh token is reused', async () => {
+    const familyId = 'family-id';
+    prismaMock.authSession.findUnique.mockResolvedValue({
+      id: 'old-session-id',
+      userId: 'user-id',
+      familyId,
+      revokedAt: new Date(),
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    prismaMock.authSession.updateMany.mockResolvedValue({ count: 1 });
+
     await expect(
-      service.login({ email: 'host@example.com', password: 'correct-horse-battery' }),
-    ).resolves.toEqual({ accessToken: 'access-token' });
-    expect(jwt.sign).toHaveBeenCalledWith({ sub: 'user-id' });
+      service.refreshSession({
+        refreshToken: 'old-refresh-token-which-is-long-enough-to-be-valid',
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(prismaMock.authSession.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { familyId, revokedAt: null } }),
+    );
+  });
+
+  it('revokes the current session and all sessions for logout operations', async () => {
+    prismaMock.authSession.updateMany.mockResolvedValue({ count: 3 });
+
+    await expect(service.logout('user-id', 'session-id')).resolves.toEqual({ loggedOut: true });
+    await expect(service.logoutAll('user-id')).resolves.toEqual({ revokedSessions: 3 });
+    expect(prismaMock.authSession.updateMany).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ where: { id: 'session-id', userId: 'user-id', revokedAt: null } }),
+    );
+    expect(prismaMock.authSession.updateMany).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ where: { userId: 'user-id', revokedAt: null } }),
+    );
   });
 
   it('rejects invalid credentials with the same response as an unknown account', async () => {

@@ -19,6 +19,7 @@ import {
   registerWithCredentialsSchema,
   registerWithProviderSchema,
   resetPasswordSchema,
+  refreshSessionSchema,
   verifyTwoFactorSchema,
   verifyChallengeSchema,
   verifyPhoneChallengeSchema,
@@ -120,6 +121,33 @@ export class IdentityController {
       request.user.sub,
       this.parseBody(changePasswordSchema, body),
     );
+  }
+
+  @Post('sessions/refresh')
+  @HttpCode(HttpStatus.OK)
+  refreshSession(@Body() body: unknown) {
+    return this.identity.refreshSession(this.parseBody(refreshSessionSchema, body));
+  }
+
+  @Post('sessions/logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  logout(@Req() request: AuthenticatedRequest) {
+    const principal = request.user;
+    if (!principal?.sub || !principal.sessionId) {
+      throw new BadRequestException('Authenticated session is missing');
+    }
+    return this.identity.logout(principal.sub, principal.sessionId);
+  }
+
+  @Post('sessions/logout-all')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  logoutAll(@Req() request: AuthenticatedRequest) {
+    if (!request.user?.sub) {
+      throw new BadRequestException('Authenticated identity is missing');
+    }
+    return this.identity.logoutAll(request.user.sub);
   }
 
   @Post('2fa/verify')
