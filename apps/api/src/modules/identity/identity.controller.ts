@@ -14,12 +14,14 @@ import {
   changePasswordSchema,
   loginWithCredentialsSchema,
   requestEmailVerificationSchema,
+  requestPhoneChallengeSchema,
   requestPasswordResetSchema,
   registerWithCredentialsSchema,
   registerWithProviderSchema,
   resetPasswordSchema,
   verifyTwoFactorSchema,
   verifyChallengeSchema,
+  verifyPhoneChallengeSchema,
 } from '@vibe-planners/shared-validations';
 import { IdentityService } from './identity.service.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
@@ -34,10 +36,8 @@ type SafeParseSchema<T> = {
 };
 
 /**
- * Placeholder endpoints for the identity flows described in the spec
- * (credentials, Google/Apple/Facebook, phone OTP, 2FA). Request bodies are
- * validated with the shared Zod schemas; the actual user store / strategy
- * wiring lands with the `identity` feature spec.
+ * API endpoints for credentials and phone verification. Social sign-in and
+ * 2FA flows remain placeholders until their implementation steps.
  */
 @Controller('identity')
 export class IdentityController {
@@ -69,6 +69,18 @@ export class IdentityController {
   @HttpCode(HttpStatus.OK)
   login(@Body() body: unknown) {
     return this.identity.login(this.parseBody(loginWithCredentialsSchema, body));
+  }
+
+  @Post('phone/challenge')
+  @HttpCode(HttpStatus.OK)
+  requestPhoneChallenge(@Body() body: unknown) {
+    return this.identity.requestPhoneChallenge(this.parseBody(requestPhoneChallengeSchema, body));
+  }
+
+  @Post('phone/verify')
+  @HttpCode(HttpStatus.OK)
+  verifyPhoneChallenge(@Body() body: unknown) {
+    return this.identity.verifyPhoneChallenge(this.parseBody(verifyPhoneChallengeSchema, body));
   }
 
   @Post('email/verification/request')

@@ -1,12 +1,16 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AccountStatus, ChallengeChannel, ChallengePurpose } from '@vibe-planners/database';
-import { ChallengePurpose as SharedChallengePurpose } from '@vibe-planners/shared-types';
+import {
+  ChallengePurpose as SharedChallengePurpose,
+  UserProfileType,
+} from '@vibe-planners/shared-types';
 import * as argon2 from 'argon2';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PrismaService } from '../../common/prisma/prisma.service.js';
 import { IdentityService } from './identity.service.js';
 import type { IdentityEmailSender } from './ports/identity-email-sender.js';
+import type { IdentitySmsSender } from './ports/identity-sms-sender.js';
 
 describe('IdentityService credential flows', () => {
   let service: IdentityService;
@@ -26,6 +30,7 @@ describe('IdentityService credential flows', () => {
     $transaction: ReturnType<typeof vi.fn>;
   };
   let emailSender: { sendCode: ReturnType<typeof vi.fn> };
+  let smsSender: { sendCode: ReturnType<typeof vi.fn> };
   let jwt: { sign: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
@@ -46,11 +51,13 @@ describe('IdentityService credential flows', () => {
     };
     prismaMock.$transaction.mockImplementation(async (operation) => operation(prismaMock));
     emailSender = { sendCode: vi.fn().mockResolvedValue(undefined) };
+    smsSender = { sendCode: vi.fn().mockResolvedValue(undefined) };
     jwt = { sign: vi.fn().mockReturnValue('access-token') };
     service = new IdentityService(
       prismaMock as unknown as PrismaService,
       jwt as unknown as JwtService,
       emailSender as unknown as IdentityEmailSender,
+      smsSender as unknown as IdentitySmsSender,
     );
   });
 
@@ -81,6 +88,160 @@ describe('IdentityService credential flows', () => {
         challengeId: 'challenge-id',
         purpose: SharedChallengePurpose.EMAIL_VERIFICATION,
       }),
+    );
+    expect(smsSender.sendCode).toHaveBeenCalledWith(
+      expect.objectContaining({ phone: '+525512345678', code: expect.stringMatching(/^\d{6}$/) }),
+    );
+  });
+
+  it('registers a phone-only account without creating an email challenge', async () => {
+    prismaMock.user.findFirst.mockResolvedValue(null);
+    prismaMock.user.create.mockResolvedValue({
+      id: 'user-id',
+      email: null,
+      status: AccountStatus.PENDING_VERIFICATION,
+    });
+    prismaMock.verificationChallenge.findFirst.mockResolvedValue(null);
+    prismaMock.verificationChallenge.updateMany.mockResolvedValue({ count: 0 });
+    prismaMock.verificationChallenge.create.mockResolvedValue({ id: 'phone-challenge-id' });
+
+    const result = await service.register({
+      phone: '+525512345678',
+      profile: UserProfileType.CLIENT,
+    });
+
+    expect(result.phoneVerificationChallengeId).toBe('phone-challenge-id');
+    expect(result).not.toHaveProperty('emailVerificationChallengeId');
+    expect(emailSender.sendCode).not.toHaveBeenCalled();
+    expect(smsSender.sendCode).toHaveBeenCalledOnce();
+  });
+
+  it('sends a generic phone-login challenge only for an active verified account', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'user-id',
+      phoneVerifiedAt: new Date(),
+      status: AccountStatus.ACTIVE,
+    });
+    prismaMock.verificationChallenge.findFirst.mockResolvedValue(null);
+    prismaMock.verificationChallenge.updateMany.mockResolvedValue({ count: 0 });
+    prismaMock.verificationChallenge.create.mockResolvedValue({ id: 'challenge-id' });
+
+    await expect(
+      service.requestPhoneChallenge({
+        phone: '+525512345678',
+        purpose: SharedChallengePurpose.PHONE_LOGIN,
+      }),
+    ).resolves.toEqual({
+      message: 'If the account can receive a verification code, one will be sent.',
+    });
+    expect(smsSender.sendCode).toHaveBeenCalledOnce();
+  });
+
+  it('verifies a phone-login challenge and issues an identity-only access token', async () => {
+    const code = '012345';
+    const user = {
+      id: 'user-id',
+      email: null,
+      emailVerifiedAt: null,
+      phoneVerifiedAt: new Date(),
+      status: AccountStatus.ACTIVE,
+    };
+    prismaMock.user.findUnique.mockResolvedValue(user);
+    prismaMock.verificationChallenge.findFirst.mockResolvedValue({
+      id: 'challenge-id',
+      userId: user.id,
+      channel: ChallengeChannel.SMS,
+      purpose: ChallengePurpose.PHONE_LOGIN,
+      secretHash: await argon2.hash(code, { type: argon2.argon2id }),
+      attempts: 0,
+      expiresAt: new Date(Date.now() + 60_000),
+      consumedAt: null,
+      user,
+    });
+    prismaMock.verificationChallenge.updateMany.mockResolvedValue({ count: 1 });
+
+    await expect(
+      service.verifyPhoneChallenge({
+        phone: '+525512345678',
+        purpose: SharedChallengePurpose.PHONE_LOGIN,
+        code,
+      }),
+    ).resolves.toEqual({ accessToken: 'access-token' });
+    expect(jwt.sign).toHaveBeenCalledWith({ sub: user.id });
+  });
+
+  it('consumes a valid phone challenge and rejects replay', async () => {
+    const code = '654321';
+    const user = {
+      id: 'user-id',
+      email: null,
+      emailVerifiedAt: null,
+      phoneVerifiedAt: new Date(),
+      status: AccountStatus.ACTIVE,
+    };
+    const challenge = {
+      id: 'challenge-id',
+      userId: user.id,
+      channel: ChallengeChannel.SMS,
+      purpose: ChallengePurpose.PHONE_LOGIN,
+      secretHash: await argon2.hash(code, { type: argon2.argon2id }),
+      attempts: 0,
+      expiresAt: new Date(Date.now() + 60_000),
+      consumedAt: null as Date | null,
+      user,
+    };
+    prismaMock.user.findUnique.mockResolvedValue(user);
+    prismaMock.verificationChallenge.findFirst.mockResolvedValue(challenge);
+    prismaMock.verificationChallenge.updateMany.mockImplementation(async ({ data }) => {
+      if (data.consumedAt) {
+        challenge.consumedAt = data.consumedAt;
+      }
+      return { count: 1 };
+    });
+
+    const input = {
+      phone: '+525512345678',
+      purpose: SharedChallengePurpose.PHONE_LOGIN,
+      code,
+    };
+    await expect(service.verifyPhoneChallenge(input)).resolves.toEqual({
+      accessToken: 'access-token',
+    });
+    await expect(service.verifyPhoneChallenge(input)).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(jwt.sign).toHaveBeenCalledOnce();
+  });
+
+  it('increments the attempt count after an incorrect phone code', async () => {
+    const user = {
+      id: 'user-id',
+      email: null,
+      emailVerifiedAt: null,
+      phoneVerifiedAt: new Date(),
+      status: AccountStatus.ACTIVE,
+    };
+    prismaMock.user.findUnique.mockResolvedValue(user);
+    prismaMock.verificationChallenge.findFirst.mockResolvedValue({
+      id: 'challenge-id',
+      userId: user.id,
+      channel: ChallengeChannel.SMS,
+      purpose: ChallengePurpose.PHONE_LOGIN,
+      secretHash: await argon2.hash('123456', { type: argon2.argon2id }),
+      attempts: 0,
+      expiresAt: new Date(Date.now() + 60_000),
+      consumedAt: null,
+      user,
+    });
+    prismaMock.verificationChallenge.updateMany.mockResolvedValue({ count: 1 });
+
+    await expect(
+      service.verifyPhoneChallenge({
+        phone: '+525512345678',
+        purpose: SharedChallengePurpose.PHONE_LOGIN,
+        code: '000000',
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(prismaMock.verificationChallenge.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { attempts: { increment: 1 } } }),
     );
   });
 

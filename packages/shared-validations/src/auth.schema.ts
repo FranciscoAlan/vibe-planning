@@ -12,12 +12,17 @@ export const passwordSchema = z.string().min(8, 'Password must be at least 8 cha
 
 export const verificationCodeSchema = z.string().regex(/^\d{6}$/, 'Code must contain 6 digits');
 
-export const registerWithCredentialsSchema = z.object({
-  email: emailSchema,
-  phone: phoneSchema,
-  password: passwordSchema,
-  profile: z.nativeEnum(UserProfileType).optional(),
-});
+export const registerWithCredentialsSchema = z
+  .object({
+    email: emailSchema.optional(),
+    phone: phoneSchema,
+    password: passwordSchema.optional(),
+    profile: z.nativeEnum(UserProfileType).optional(),
+  })
+  .refine(({ email, password }) => Boolean(email) === Boolean(password), {
+    message: 'Email and password must be provided together',
+    path: ['password'],
+  });
 
 export const requestPhoneChallengeSchema = z.object({
   phone: phoneSchema,
@@ -42,6 +47,12 @@ export const verifyTwoFactorSchema = z.object({
 
 export const verifyChallengeSchema = z.object({
   challengeId: z.string().uuid(),
+  code: verificationCodeSchema,
+});
+
+export const verifyPhoneChallengeSchema = z.object({
+  phone: phoneSchema,
+  purpose: z.enum([ChallengePurpose.PHONE_VERIFICATION, ChallengePurpose.PHONE_LOGIN]),
   code: verificationCodeSchema,
 });
 
@@ -78,6 +89,7 @@ export type RegisterWithProviderInput = z.infer<typeof registerWithProviderSchem
 export type LoginWithCredentialsInput = z.infer<typeof loginWithCredentialsSchema>;
 export type VerifyTwoFactorInput = z.infer<typeof verifyTwoFactorSchema>;
 export type VerifyChallengeInput = z.infer<typeof verifyChallengeSchema>;
+export type VerifyPhoneChallengeInput = z.infer<typeof verifyPhoneChallengeSchema>;
 export type RequestEmailVerificationInput = z.infer<typeof requestEmailVerificationSchema>;
 export type RequestPasswordResetInput = z.infer<typeof requestPasswordResetSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
