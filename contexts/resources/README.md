@@ -2,7 +2,7 @@
 
 Contenido del paquete:
 
-- `index.html`: ábrelo en tu navegador para ver la lista de las 184 pantallas, agrupadas.
+- `index.html`: ábrelo en tu navegador para ver la lista de las 232 pantallas, agrupadas.
 - `paginas/`: cada pantalla como archivo HTML independiente. No necesitan servidor. Solo la tipografía (Plus Jakarta Sans) se descarga de internet; sin conexión se usa una fuente genérica.
 - `fuente-lienzo/`: archivos originales del lienzo de diseño (`.dc.html` y `canvas.json`). Son un respaldo y necesitan el lienzo de Claude para verse.
 - `documentacion/componentes-vibe-planners.md`: inventario de componentes para `packages/ui`.

@@ -1377,6 +1377,371 @@
       "x": 1400,
       "y": 72828,
       "title": "Crear publicación · Ubicación"
+    },
+    "NxPolCancel.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Política de cancelación y reembolsos",
+      "w": 1280,
+      "x": 0,
+      "y": 74028
+    },
+    "NxPolDevol.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Política de devoluciones",
+      "w": 1280,
+      "x": 1400,
+      "y": 74028
+    },
+    "NxPolModif.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Política de modificaciones",
+      "w": 1280,
+      "x": 0,
+      "y": 75248
+    },
+    "NxConfianza.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Centro de confianza y seguridad",
+      "w": 1280,
+      "x": 1400,
+      "y": 75248
+    },
+    "NxModificar.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Modificar reserva",
+      "w": 1280,
+      "x": 0,
+      "y": 76468
+    },
+    "NxDisputa.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Abrir disputa o devolución",
+      "w": 1280,
+      "x": 1400,
+      "y": 76468
+    },
+    "NxReportar.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Reportar",
+      "w": 1280,
+      "x": 0,
+      "y": 77688
+    },
+    "NxContrato.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Contrato de servicio",
+      "w": 1280,
+      "x": 1400,
+      "y": 77688
+    },
+    "NxComparador.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Comparador de cotizaciones",
+      "w": 1280,
+      "x": 0,
+      "y": 78908
+    },
+    "NxSuspendida.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Cuenta suspendida",
+      "w": 1280,
+      "x": 1400,
+      "y": 78908
+    },
+    "NxChatbot.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Chatbot de soporte",
+      "w": 1280,
+      "x": 0,
+      "y": 80128
+    },
+    "NxTickets.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Mis tickets de soporte",
+      "w": 1280,
+      "x": 1400,
+      "y": 80128
+    },
+    "NxTicket.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Detalle de ticket",
+      "w": 1280,
+      "x": 0,
+      "y": 81348
+    },
+    "NxArticulo.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Artículo de ayuda",
+      "w": 1280,
+      "x": 1400,
+      "y": 81348
+    },
+    "NxSSO.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Acceso con SSO",
+      "w": 1280,
+      "x": 0,
+      "y": 82568
+    },
+    "NxOrgAjustes.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Configuración de la organización",
+      "w": 1280,
+      "x": 1400,
+      "y": 82568
+    },
+    "NxOrgSeguridad.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Seguridad de la organización",
+      "w": 1280,
+      "x": 0,
+      "y": 83788
+    },
+    "NxHistorial.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Historial de actividad",
+      "w": 1280,
+      "x": 1400,
+      "y": 83788
+    },
+    "NxBoAcceso.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Acceso",
+      "w": 1280,
+      "x": 0,
+      "y": 85008
+    },
+    "NxBoSoporte.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Soporte",
+      "w": 1280,
+      "x": 1400,
+      "y": 85008
+    },
+    "NxBoDisputa.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Caso de disputa",
+      "w": 1280,
+      "x": 0,
+      "y": 86228
+    },
+    "NxBoUsuario.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Usuario 360",
+      "w": 1280,
+      "x": 1400,
+      "y": 86228
+    },
+    "NxBoChatbot.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Chatbot",
+      "w": 1280,
+      "x": 0,
+      "y": 87448
+    },
+    "NxBoAuditoria.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Auditoría",
+      "w": 1280,
+      "x": 1400,
+      "y": 87448
+    },
+    "NxBoRoles.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Roles internos",
+      "w": 1280,
+      "x": 0,
+      "y": 88668
+    },
+    "NxBoSalud.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Salud de la plataforma",
+      "w": 1280,
+      "x": 1400,
+      "y": 88668
+    },
+    "NxChatbotMovil.dc.html": {
+      "h": 844,
+      "title": "Chatbot de soporte · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 80128
+    },
+    "NyInvitados.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Lista de invitados",
+      "w": 1280,
+      "x": 0,
+      "y": 89968
+    },
+    "NyPresupuesto.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Presupuesto del evento",
+      "w": 1280,
+      "x": 1400,
+      "y": 89968
+    },
+    "NyImpuestos.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Impuestos y retenciones",
+      "w": 1280,
+      "x": 0,
+      "y": 91088
+    },
+    "NyInvitadosMovil.dc.html": {
+      "h": 844,
+      "title": "Lista de invitados · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 89968
+    },
+    "NyPresupuestoMovil.dc.html": {
+      "h": 844,
+      "title": "Presupuesto del evento · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 89968
+    },
+    "NyImpuestosMovil.dc.html": {
+      "h": 844,
+      "title": "Impuestos y retenciones · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 91088
+    },
+    "NxModificarMovil.dc.html": {
+      "h": 844,
+      "title": "Modificar reserva · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 76468
+    },
+    "NxDisputaMovil.dc.html": {
+      "h": 844,
+      "title": "Abrir disputa o devolución · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 76468
+    },
+    "NxReportarMovil.dc.html": {
+      "h": 844,
+      "title": "Reportar · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 77688
+    },
+    "NxContratoMovil.dc.html": {
+      "h": 844,
+      "title": "Contrato de servicio · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 77688
+    },
+    "NxComparadorMovil.dc.html": {
+      "h": 844,
+      "title": "Comparador de cotizaciones · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 78908
+    },
+    "NxSuspendidaMovil.dc.html": {
+      "h": 844,
+      "title": "Cuenta suspendida · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 78908
+    },
+    "NxTicketsMovil.dc.html": {
+      "h": 844,
+      "title": "Mis tickets de soporte · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 80128
+    },
+    "NxTicketMovil.dc.html": {
+      "h": 844,
+      "title": "Detalle de ticket · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 81348
+    },
+    "NxArticuloMovil.dc.html": {
+      "h": 844,
+      "title": "Artículo de ayuda · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 81348
+    },
+    "NxSSOMovil.dc.html": {
+      "h": 844,
+      "title": "Acceso con SSO · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 82568
+    },
+    "NxHistorialMovil.dc.html": {
+      "h": 844,
+      "title": "Historial de actividad · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 83788
+    },
+    "NxPolCancelMovil.dc.html": {
+      "h": 844,
+      "title": "Política de cancelación y reembolsos · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 74028
+    },
+    "NxPolDevolMovil.dc.html": {
+      "h": 844,
+      "title": "Política de devoluciones · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 74028
+    },
+    "NxPolModifMovil.dc.html": {
+      "h": 844,
+      "title": "Política de modificaciones · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 75248
+    },
+    "NxConfianzaMovil.dc.html": {
+      "h": 844,
+      "title": "Centro de confianza y seguridad · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 75248
     }
   },
   "createdOnFiles": {
@@ -1389,6 +1754,54 @@
   },
   "notes": {},
   "order": [
+    "NxConfianzaMovil.dc.html",
+    "NxPolModifMovil.dc.html",
+    "NxPolDevolMovil.dc.html",
+    "NxPolCancelMovil.dc.html",
+    "NxHistorialMovil.dc.html",
+    "NxSSOMovil.dc.html",
+    "NxArticuloMovil.dc.html",
+    "NxTicketMovil.dc.html",
+    "NxTicketsMovil.dc.html",
+    "NxSuspendidaMovil.dc.html",
+    "NxComparadorMovil.dc.html",
+    "NxContratoMovil.dc.html",
+    "NxReportarMovil.dc.html",
+    "NxDisputaMovil.dc.html",
+    "NxModificarMovil.dc.html",
+    "NyImpuestosMovil.dc.html",
+    "NyPresupuestoMovil.dc.html",
+    "NyInvitadosMovil.dc.html",
+    "NyImpuestos.dc.html",
+    "NyPresupuesto.dc.html",
+    "NyInvitados.dc.html",
+    "NxChatbotMovil.dc.html",
+    "NxBoSalud.dc.html",
+    "NxBoRoles.dc.html",
+    "NxBoAuditoria.dc.html",
+    "NxBoChatbot.dc.html",
+    "NxBoUsuario.dc.html",
+    "NxBoDisputa.dc.html",
+    "NxBoSoporte.dc.html",
+    "NxBoAcceso.dc.html",
+    "NxHistorial.dc.html",
+    "NxOrgSeguridad.dc.html",
+    "NxOrgAjustes.dc.html",
+    "NxSSO.dc.html",
+    "NxArticulo.dc.html",
+    "NxTicket.dc.html",
+    "NxTickets.dc.html",
+    "NxChatbot.dc.html",
+    "NxSuspendida.dc.html",
+    "NxComparador.dc.html",
+    "NxContrato.dc.html",
+    "NxReportar.dc.html",
+    "NxDisputa.dc.html",
+    "NxModificar.dc.html",
+    "NxConfianza.dc.html",
+    "NxPolModif.dc.html",
+    "NxPolDevol.dc.html",
+    "NxPolCancel.dc.html",
     "CrearUbicacion.dc.html",
     "DetalleUbicacion.dc.html",
     "DetalleGaleriaMovil.dc.html",

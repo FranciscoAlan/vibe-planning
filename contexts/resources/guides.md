@@ -1161,3 +1161,123 @@ Hay un artboard “Inventario de componentes” con 71 componentes en siete grup
 Algunos componentes ya existían en las pantallas, pero no en la biblioteca, y ya están incluidos. Las pantallas siguen con estilos propios y todavía no leen de la biblioteca. Quedan como marcadores todos los textos y montos.
 
 Puedo exportar el inventario a un archivo Markdown, con una tabla por grupo, para llevarlo al repositorio.
+
+Exporté el inventario a un archivo Markdown: componentes-vibe-planners.md.
+
+Tiene los 71 componentes, en las mismas siete secciones que el artboard del lienzo. Cada sección trae una tabla con el nombre del componente, sus variantes, sus estados y dónde se usa. Les puse además una carpeta sugerida dentro de packages/ui/src/, por ejemplo forms/, navigation/ o domain/. Estas carpetas son una propuesta mía y no salen de tu documento.
+
+También incluye:
+
+Tokens de diseño: los cinco colores, la tipografía, el espaciado, los radios y el área táctil mínima.
+Reglas de accesibilidad: el estado nunca solo por color, controles de al menos 44 px, etiquetas en los botones de solo ícono y en los campos. Los contrastes que cito son cálculos aproximados que aún hay que verificar con una herramienta.
+Notas: el proveedor de mapas está por elegir, los campos de tarjeta deben ser los alojados por el proveedor de pagos, y los textos y montos son marcadores.
+
+Generé la tabla a partir del artboard del lienzo, así que ambos coinciden. Si ajustas uno de los dos después, el otro queda desactualizado.
+
+Con esto el diseño cubre pantallas, versiones móviles, plantillas de mensajes y biblioteca de componentes. Lo que sigue pendiente es la versión en inglés de las pantallas y los emails, y pasar a código. Para eso puedo preparar un script de generación que cree la estructura de rutas de apps/web y los componentes vacíos de packages/ui, como pedías al inicio, o un índice de pantallas con sus rutas y roles.
+
+Creé el archivo vibe-planners-disenos.zip (unos 540 KB) con las 184 pantallas del lienzo.
+
+Qué contiene
+
+index.html: ábrelo en el navegador para ver la lista completa, agrupada en Logo, Pantallas web, Móviles, Backoffice, Componentes y sistema de diseño, Emails, y Plantillas de SMS y push. Cada nombre es un enlace a su pantalla.
+paginas/: cada pantalla como un archivo HTML independiente. No necesitan servidor. Solo la tipografía Plus Jakarta Sans se descarga de internet; sin conexión se ve con una fuente genérica. Las móviles se centran sobre un fondo de color.
+fuente-lienzo/: los archivos originales del lienzo, con canvas.json. Son un respaldo: para verlos se necesita el lienzo de Claude, así que no se abren directo en el navegador.
+documentacion/componentes-vibe-planners.md: el inventario de componentes.
+LEEME.md: una explicación breve del contenido.
+
+Qué debes saber
+
+Las pantallas son maquetas. Los botones y campos no hacen nada, y los textos entre corchetes, como [PRECIO], son marcadores.
+Convertí las pantallas a HTML con un script, y comprobé que el zip está íntegro y que las 184 se exportaron. No abrí las páginas en un navegador, así que revisa unas cuantas, sobre todo los emails y las móviles.
+Las posiciones del lienzo, es decir cómo estaban ordenadas las pantallas, solo se conservan dentro de canvas.json.
+El zip refleja el estado del lienzo en este momento. Si luego ajustas algo en el lienzo, hay que volver a generarlo.
+
+Qué encontré
+
+El lienzo tenía bien cubierto el camino principal: buscar, cotizar, reservar, pagar y cobrar. Las brechas estaban en lo que pasa cuando algo se sale del camino, y en la parte interna.
+
+1. Cuando algo cambia o sale mal. Había una pantalla de cancelar, pero no las reglas ni los flujos de modificar, devolver o disputar.
+2. Soporte. Existía el centro de ayuda y un formulario, pero no había asistente automático, tickets ni una bandeja interna para atenderlos.
+3. Acceso empresarial. Faltaban el inicio de sesión único (SSO), la seguridad de la organización y un historial de actividad.
+4. Personal interno. Había moderación y pagos, pero no un acceso propio para el personal, ni vista completa de un usuario, ni auditoría, roles internos o salud de la plataforma.
+5. Confianza y bloqueos. Se podía banear una cuenta, pero el usuario no veía qué pasaba ni podía apelar.
+
+Lo que agregué
+
+Son 26 artboards web y 1 móvil, al final del lienzo.
+
+Políticas y reglas (públicas)
+
+Cancelaciones y reembolsos, con una tabla de políticas Flexible, Moderada y Estricta.
+Devoluciones.
+Modificaciones de reservas.
+Centro de confianza y seguridad.
+
+Flujos del cliente
+
+Modificar reserva, con diferencia de precio y aprobación del proveedor.
+Abrir disputa o devolución, con evidencia.
+Reportar.
+Contrato de servicio con firma.
+Comparador de cotizaciones.
+Cuenta suspendida con apelación.
+Historial de actividad.
+
+Soporte
+
+Chatbot, en web y en móvil, con respuestas rápidas y opción de hablar con una persona.
+Mis tickets y detalle de ticket.
+Artículo de ayuda.
+
+Acceso y organización
+
+Acceso con SSO.
+Configuración de la organización.
+Seguridad de la organización (SSO, dos pasos obligatorio, sesiones del equipo).
+
+Backoffice
+
+Acceso del personal con SSO y dos pasos.
+Soporte, con tickets y SLA.
+Caso de disputa, con cronología, evidencia y decisión.
+Usuario 360, con notas internas y acciones.
+Chatbot y respuestas.
+Auditoría.
+Roles internos.
+Salud de la plataforma, con el estado de API, base de datos, caché, búsqueda, pagos, SMS, correo y push.
+
+Añadí al menú lateral del backoffice las opciones Soporte, Chatbot, Auditoría, Roles internos y Salud de la plataforma en las 15 páginas existentes, así que el menú tiene 20 opciones.
+
+Lo que dejé como marcador: los textos de las políticas, los porcentajes de reembolso, los tiempos de respuesta y los textos legales. Las políticas las debe redactar y revisar tu equipo jurídico.
+
+Lo que aún sería valioso
+Lista de invitados y confirmaciones (RSVP) dentro del plan del cliente. Tu documento no la pide, pero es una función natural de un marketplace de eventos.
+Presupuesto del evento con categorías para el cliente, más allá de la gestión de plan actual.
+Impuestos y retenciones del SAT como pantalla propia de finanzas.
+Versiones móviles de estas 26 pantallas nuevas, salvo el chatbot.
+Versión en inglés de las pantallas y de los emails, que tu documento pide.
+Pasar a código: rutas de apps/web y componentes de packages/ui.
+
+El archivo zip que te di antes ya no incluye estas 27 pantallas ni los menús actualizados. Puedo generarlo de nuevo cuando quieras.
+
+Pantallas nuevas (3 web y sus móviles)
+
+Están al final del lienzo.
+
+Lista de invitados: conteos de invitados, confirmados, pendientes y no asisten, y una tabla con la respuesta de cada invitado. Incluye un link para confirmar asistencia y los botones “Enviar invitaciones”, “Enviar recordatorio a pendientes” e “Importar contactos”.
+Presupuesto del evento: presupuesto, cotizado, pagado y disponible, con una barra de avance y el desglose por categoría (locales, música, fotografía, banquetes y decoración).
+Impuestos y retenciones (proveedor, con “Finanzas” resaltado): ingresos del periodo, IVA, retenciones de ISR e IVA y el detalle por factura, con descarga de constancia. Las tasas y los cálculos son marcadores y los debe definir un contador.
+Versiones móviles de las pantallas de la tanda anterior
+
+Agregué 15: modificar reserva, abrir disputa, reportar, contrato, comparador de cotizaciones, cuenta suspendida, mis tickets, detalle de ticket, artículo de ayuda, SSO, historial de actividad, las tres políticas (cancelaciones, devoluciones y modificaciones) y confianza y seguridad. Las políticas y el centro de confianza usan acordeones. Revisé que ninguna quede en la misma posición que otra.
+
+El zip
+
+Ahora tiene 232 pantallas: 95 web, 89 móviles, 23 de backoffice, 12 de componentes y sistema de diseño, 10 emails, 2 plantillas de SMS y push, y el logo. Volví a leer el lienzo antes de generarlo, así que incluye tus ajustes recientes. Comprobé que el archivo está íntegro y que no falta ninguna pantalla, pero no abrí las páginas en un navegador, así que revisa unas cuantas.
+
+Lo que sigue pendiente
+Versión en inglés. Las pantallas y los emails están solo en español. Hacerlas a mano duplicaría 232 pantallas. Conviene resolverlo en el código con un sistema de traducciones, y a partir del diseño en español. Los SMS y las notificaciones push ya tienen los dos idiomas.
+Móviles del backoffice y de ajustes de organización. Los dejé sin versión móvil a propósito, porque se usan desde escritorio. Dime si los quieres.
+Pasar a código. Puedo preparar el script que cree las rutas de apps/web y los componentes vacíos de packages/ui, como pedías al inicio. Para eso me sirven el inventario de componentes y la lista de pantallas.
+Contenido real. Todo lo que dice [...] sigue siendo marcador. Los textos legales, las políticas, las comisiones y los cálculos fiscales los deben definir tu equipo jurídico, tu negocio y un contador.
