@@ -2,6 +2,8 @@
 
 Este documento refleja el estado real del monorepo a medida que se implementan [SPEC 01](../specs/01-arquitectura-scaffolding-monorepo.md) y [SPEC 02](../specs/02-modelos-dominio-directorio.md). Se actualiza conforme avanza la implementación, no es un documento de diseño aspiracional.
 
+The web and shared UI sections also describe [SPEC 06](../specs/06-design-reference-and-public-home.md). Backend, native mobile and backoffice behavior was not changed or re-audited in that delivery.
+
 ## Stack y versiones reales instaladas
 
 | Área                 | Decisión                                                                  | Nota                                                                                                                       |
@@ -13,15 +15,15 @@ Este documento refleja el estado real del monorepo a medida que se implementan [
 | Formateo             | Prettier + `.editorconfig` + `files.eol: "\n"` en `.vscode/settings.json` | Line endings normalizados con `.gitattributes` (`eol=lf`)                                                                  |
 | ORM                  | Prisma 6                                                                  | `packages/database` (modelos base, directorio y promociones)                                                               |
 | DB local             | Postgres 17, Redis 7, Elasticsearch 8.16 vía `docker/docker-compose.yml`  | No verificado en este entorno (sin Docker disponible)                                                                      |
-| Web (`apps/web`)     | Next.js 15.5.27 + React 19.2.3                                            | App Router, Tailwind 3, Playwright smoke test; Jest todavía pendiente                                                      |
+| Web (`apps/web`)     | Next.js 15.5.27 + React 19.2.3                                            | App Router, Tailwind 3, public demo home and focused Playwright coverage                                                   |
 | Backoffice           | Vite 8.3.1 + React 19.2.3                                                 | Jest con SWC                                                                                                               |
 | Mobile               | Expo SDK 57 + React Native 0.86.3 + React 19.2.3                          | Expo Router; rutas universales para nativo y web                                                                           |
-| UI compartida        | `@vibe-planners/ui`                                                       | Componente `Button`; peer de React fijado a `19.2.3` para evitar duplicados con Expo                                       |
+| UI compartida        | `@vibe-planners/ui`                                                       | Eight web components, direct Lucide dependency and React `19.2.3` peer                                                     |
 | Git hooks            | Husky + lint-staged                                                       | Corre ESLint + Prettier antes de cada commit                                                                               |
 
 ## Estructura actual
 
-```
+```text
 apps/
   api/                  # NestJS 12 — controladores base + módulo Directory activo
   web/                  # Next.js 15 — App Router, Tailwind, Playwright
@@ -32,7 +34,7 @@ packages/
   shared-types/         # Tipos compartidos: IUser, ITenant, ICategory, IListing, IListingPromotion, etc.
   shared-validations/   # Esquemas Zod de auth, tenant, publicaciones y promociones
   database/             # Prisma schema, migraciones y seeders (Tenants, Users, Categories, Listings, etc.)
-  ui/                   # Button compartido para apps web
+  ui/                   # Shared web components and exported prop types
 docker/
   docker-compose.yml     # Postgres, Redis, Elasticsearch
 README.md               # Setup, commands and current validation status
@@ -93,11 +95,28 @@ specs/
 
 ## Frontends
 
-### `apps/web` (Paso 10)
+### `apps/web` (SPEC 06)
 
-- Next.js 15 App Router con grupos `(public)`, `(auth)`, `(dashboard)` y `(client)`, Tailwind y `@vibe-planners/ui`.
-- Playwright ejecuta un smoke test de la vista Overview (`npm run test:e2e --workspace=apps/web`). Jest unitario para web sigue pendiente.
-- `npm run build` y `npm run lint` pasan en el workspace.
+- Next.js 15 App Router retains the `(public)`, `(auth)`, `(dashboard)` and `(client)` route groups. `/` now renders the Spanish public home; `/login`, `/dashboard` and `/account` retain their existing English placeholder content with `lang="en"` on their main regions.
+- `src/components/home/home-experience.tsx` owns draft search values, applied city/category filters, favorites and unavailable-action notices. `home-search.tsx` and `home-nav.tsx` handle presentation and callbacks. City matching is partial, case-insensitive and accent-insensitive; the date is tentative and does not check availability.
+- Six clearly identified demo fixtures cover five service categories. Favorites stay in memory and disappear on reload. Reset clears search/filter values without deleting favorites. There are no application API calls, real bookings, payments or persistent writes in this slice.
+- Listing photographs are served locally from `public/images/home/`; [their README](../apps/web/public/images/home/README.md) records CDN sources, license conditions and limitations. Photos, locations, prices, ratings and advertising labels are illustrative, not supplier verification.
+- Shared Tailwind tokens include the `vibe` palette and semantic field/card/button radii while preserving `brand` and web's `forest` extension. Plus Jakarta Sans is loaded with `next/font/google` at weights 400, 600 and 800; generated font files are self-hosted, and `--font-jakarta` binds the font to global styles and the `font-jakarta` utility.
+- The document defaults to Spanish and uses cream/plum base colors and amber text selection. TypeScript DOM libraries are enabled only in web. `body` has no fixed minimum width, avoiding overflow when scrollbars reduce the available width.
+- `tests/home.spec.ts` covers discovery, draft/applied filters, categories, tentative dates, keyboard focus and favorites, reset/reload, live notices, lack of API/storage writes, local images, pre-hydration image errors, blocked fonts, measured contrast and the existing English routes.
+- Responsive tests use 1440 x 900, 390 x 844 and 320 x 844 viewports. They check 44 px controls, overlap, horizontal overflow and stable favorite dimensions, and attach full-page PNG captures. The contrast test attaches measurements from rendered colors, including alpha compositing and placeholders; source-design contrast estimates are not used as evidence.
+- The [consolidated design reference](../contexts/resources/design-reference.md) separates visual descriptions, proposals, limitations and unresolved decisions. The [71-entry inventory](../contexts/resources/documentacion/componentes-vibe-planners.md) remains an estimate rather than a mandate to generate every component.
+- Complete internationalization, real authentication, availability, payments, native mobile and backoffice remain outside SPEC 06. Future application HTTP calls belong in `*.api.service.ts` files.
+
+Focused validation commands:
+
+```sh
+npm run lint --workspace=@vibe-planners/web
+npm run build --workspace=@vibe-planners/web
+npm run test:e2e --workspace=@vibe-planners/web -- home.spec.ts
+```
+
+Stop an active development server before a production build and restart it afterward: `next dev` and `next build` both write to `.next`, and overlapping them can leave development CSS/JS requests returning 404. Playwright uses two workers to avoid saturating a cold development server, can reuse a running server locally and starts its own server when needed.
 
 ### `apps/backoffice` (Paso 11)
 
@@ -129,7 +148,11 @@ specs/
 
 ### `packages/ui`
 
-- `@vibe-planners/ui` exporta el `Button` compartido que consume la app web.
+- `@vibe-planners/ui` exports `Button`, `Input`, `Select`, `Chip`, `Seal`, `Logo`, `Rating` and `ListingCard`, plus their public prop/variant types, from `src/index.ts`. Components remain in the existing flat source folder; no empty inventory scaffolding was generated.
+- `Button` retains `primary`, `secondary`, `quiet`, native HTML attributes and `className`. Loading disables the control, sets `aria-busy` and uses an overlay indicator without changing its dimensions.
+- Native input/select controls associate visible labels, hints and errors. Chips and favorite buttons expose selection with `aria-pressed`; decorative Lucide icons are hidden from assistive technology.
+- `ListingCard` has fixed-format media, locale-aware price/rating display and a controlled favorite callback. It shows an accessible image fallback both for later load errors and for images already broken when React hydrates.
+- Lucide is a direct dependency; React remains a `19.2.3` peer. These are DOM/web components, not React Native components or authorization/business-rule abstractions.
 
 ## Tooling and environment configuration
 
@@ -145,7 +168,7 @@ npm run lint -- --ui=stream   # 8 Turborepo tasks successful
 npm run build                 # 5 Turborepo tasks successful
 ```
 
-API Vitest, backoffice Jest and the web Playwright smoke test also pass. The web Jest unit test and Docker-dependent checks remain pending.
+API Vitest and backoffice Jest results above are retained from their earlier validation. Web now has the focused Playwright home suite described in SPEC 06. Web unit-test tooling and Docker-dependent checks remain outside that delivery.
 
 ## Pendiente de validación local (requiere Docker, no disponible en este entorno)
 

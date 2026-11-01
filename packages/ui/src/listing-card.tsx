@@ -66,6 +66,11 @@ export function ListingCard({
           </div>
         ) : (
           <img
+            ref={(image) => {
+              if (image?.complete && image.naturalWidth === 0) {
+                setFailedSource(imageSrc);
+              }
+            }}
             src={imageSrc}
             alt={imageAlt}
             width={640}
