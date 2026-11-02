@@ -8,12 +8,12 @@ datasource db {
 }
 
 model Tenant {
-  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name      String
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  users     User[]
-  listings  Listing[]
+  id                   String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String
+  createdAt            DateTime                 @default(now()) @map("created_at")
+  updatedAt            DateTime                 @updatedAt @map("updated_at")
+  memberships          OrganizationMembership[]
+  listings             Listing[]
   bookingSettings     ListingBookingSettings[]
   availabilityWindows AvailabilityWindow[]
   availabilityBlocks  AvailabilityBlock[]
@@ -23,14 +23,42 @@ model Tenant {
   @@map("tenants")
 }
 
-/// Roles a user can hold within a tenant. A user may hold more than one over time.
-enum UserRole {
+enum UserProfileType {
   CLIENT
-  PROVIDER
   EVENT_PLANNER
+
+  @@map("user_profile_type")
+}
+
+enum OrganizationRole {
+  OWNER
+  PROVIDER
   ADMIN
 
-  @@map("user_role")
+  @@map("organization_role")
+}
+
+enum AccountStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+
+  @@map("account_status")
+}
+
+enum ChallengeChannel {
+  SMS
+  EMAIL
+
+  @@map("challenge_channel")
+}
+
+enum ChallengePurpose {
+  PHONE_VERIFICATION
+  PHONE_LOGIN
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+
+  @@map("challenge_purpose")
 }
 
 /// Login providers supported by the identity module.
@@ -45,24 +73,86 @@ enum AuthProviderType {
 }
 
 model User {
-  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenantId        String         @map("tenant_id") @db.Uuid
-  tenant          Tenant         @relation(fields: [tenantId], references: [id])
-  email           String?        @unique
-  phone           String?        @unique
-  passwordHash    String?        @map("password_hash")
-  role            UserRole       @default(CLIENT)
-  twoFactorSecret String?        @map("two_factor_secret")
-  twoFactorEnabled Boolean       @default(false) @map("two_factor_enabled")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
-  identities      AuthIdentity[]
-  listings        Listing[]
-  customerReservations  Reservation[]  @relation("ReservationCustomer")
-  cancelledReservations Reservation[]  @relation("ReservationCancelledBy")
+  id                    String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                 String?                  @unique
+  emailVerifiedAt       DateTime?                @map("email_verified_at") @db.Timestamptz(6)
+  phone                 String?                  @unique
+  phoneVerifiedAt       DateTime?                @map("phone_verified_at") @db.Timestamptz(6)
+  passwordHash          String?                  @map("password_hash")
+  status                AccountStatus            @default(PENDING_VERIFICATION)
+  twoFactorSecret       String?                  @map("two_factor_secret")
+  twoFactorEnabled      Boolean                  @default(false) @map("two_factor_enabled")
+  createdAt             DateTime                 @default(now()) @map("created_at")
+  updatedAt             DateTime                 @updatedAt @map("updated_at")
+  profiles              UserProfile[]
+  memberships           OrganizationMembership[]
+  identities            AuthIdentity[]
+  sessions              AuthSession[]
+  challenges            VerificationChallenge[]
+  listings              Listing[]
+  customerReservations  Reservation[]            @relation("ReservationCustomer")
+  cancelledReservations Reservation[]            @relation("ReservationCancelledBy")
 
-  @@index([tenantId, id])
   @@map("users")
+}
+
+model UserProfile {
+  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String          @map("user_id") @db.Uuid
+  role      UserProfileType
+  createdAt DateTime        @default(now()) @map("created_at")
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@map("user_profiles")
+}
+
+model OrganizationMembership {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String           @map("tenant_id") @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  role      OrganizationRole
+  createdAt DateTime         @default(now()) @map("created_at")
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([userId, role])
+  @@map("organization_memberships")
+}
+
+model AuthSession {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  familyId   String    @map("family_id") @db.Uuid
+  tokenHash  String    @unique @map("token_hash")
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
+  twoFactorVerified Boolean @default(false) @map("two_factor_verified")
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([familyId, revokedAt])
+  @@map("auth_sessions")
+}
+
+model VerificationChallenge {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String           @map("user_id") @db.Uuid
+  channel    ChallengeChannel
+  purpose    ChallengePurpose
+  target     String
+  secretHash String           @map("secret_hash")
+  attempts   Int              @default(0)
+  expiresAt  DateTime         @map("expires_at") @db.Timestamptz(6)
+  consumedAt DateTime?        @map("consumed_at") @db.Timestamptz(6)
+  createdAt  DateTime         @default(now()) @map("created_at")
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose, expiresAt])
+  @@map("verification_challenges")
 }
 
 /// Links a user to one of the providers they used to sign in, to prevent duplicate accounts.

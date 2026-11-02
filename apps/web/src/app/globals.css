@@ -4,9 +4,11 @@
 
 :root {
   color-scheme: light;
-  background: #f7f8f5;
-  color: #242b27;
-  font-family: 'Aptos', 'Trebuchet MS', sans-serif;
+  --color-background: theme('colors.vibe.cream');
+  --color-foreground: theme('colors.vibe.plum');
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-jakarta), sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -17,7 +19,7 @@
 
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: 0;
   min-height: 100vh;
 }
 
@@ -27,6 +29,6 @@ a {
 }
 
 ::selection {
-  background: #d7e9df;
-  color: #1b4437;
+  background: theme('colors.vibe.amber');
+  color: theme('colors.vibe.plum');
 }

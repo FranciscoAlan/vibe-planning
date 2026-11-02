@@ -5,7 +5,6 @@ import { PassportModule } from '@nestjs/passport';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { BookingModule } from '../src/modules/booking/booking.module.js';
-import { JwtStrategy } from '../src/modules/identity/strategies/jwt.strategy.js';
 import { PrismaService } from '../src/common/prisma/prisma.service.js';
 
 type Row = Record<string, unknown>;
@@ -71,6 +70,11 @@ function createPrismaMock() {
   const blocks: Row[] = [];
   const reservations: Row[] = [];
   const outbox: Row[] = [];
+  const memberships = [
+    { tenantId: ids.tenantA, userId: ids.providerA, role: 'PROVIDER' },
+    { tenantId: ids.tenantB, userId: ids.providerB, role: 'PROVIDER' },
+  ];
+  const clientProfiles = [ids.clientA, ids.clientB];
   let nextId = 1;
 
   const createDelegate = (rows: Row[]) => ({
@@ -142,6 +146,31 @@ function createPrismaMock() {
       }),
     },
     bookingOutboxEvent: outboxDelegate,
+    authSession: {
+      findFirst: vi.fn(async ({ where }: Row) =>
+        String(where.id).startsWith('session-')
+          ? { id: where.id, twoFactorVerified: false, user: { twoFactorEnabled: false } }
+          : null,
+      ),
+    },
+    organizationMembership: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      findUnique: vi.fn(
+        async ({ where }: Row) =>
+          memberships.find(
+            (membership) =>
+              membership.tenantId === where.tenantId_userId.tenantId &&
+              membership.userId === where.tenantId_userId.userId,
+          ) ?? null,
+      ),
+    },
+    userProfile: {
+      findUnique: vi.fn(async ({ where }: Row) =>
+        where.userId_role.role === 'CLIENT' && clientProfiles.includes(where.userId_role.userId)
+          ? { id: `profile-${where.userId_role.userId}` }
+          : null,
+      ),
+    },
     $queryRaw: vi.fn().mockResolvedValue([]),
     $transaction: vi.fn(async (callback: (tx: PrismaService) => Promise<unknown>) =>
       callback(prisma as unknown as PrismaService),
@@ -158,9 +187,16 @@ describe('Booking reservations (e2e)', () => {
   let jwt: JwtService;
   let prismaMock: ReturnType<typeof createPrismaMock>;
 
-  const issueToken = (sub: string, tenantId: string, role: string) =>
-    jwt.sign({ sub, tenantId, role });
-  const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
+  const tokenTenants = new Map<string, string>();
+  const issueToken = (sub: string, tenantId: string, role: string) => {
+    const token = jwt.sign({ sub, sessionId: `session-${sub}`, tenantId, role });
+    tokenTenants.set(token, tenantId);
+    return token;
+  };
+  const auth = (token: string) => ({
+    Authorization: `Bearer ${token}`,
+    'x-tenant-id': tokenTenants.get(token) ?? '',
+  });
 
   beforeEach(async () => {
     prismaMock = createPrismaMock();
@@ -173,7 +209,6 @@ describe('Booking reservations (e2e)', () => {
           signOptions: { expiresIn: '1h' },
         }),
       ],
-      providers: [JwtStrategy],
     })
       .overrideProvider(PrismaService)
       .useValue(prismaMock.prisma)
@@ -232,10 +267,23 @@ describe('Booking reservations (e2e)', () => {
         });
       });
 
-    const reservationResponse = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post('/booking/reservations')
       .set(auth(clientA))
       .set('x-tenant-id', ids.tenantB)
+      .send({
+        listingId: ids.listingA,
+        startAt,
+        endAt,
+        customerId: ids.clientB,
+      })
+      .expect(404);
+
+    expect(prismaMock.state.reservations).toHaveLength(0);
+
+    const reservationResponse = await request(app.getHttpServer())
+      .post('/booking/reservations')
+      .set(auth(clientA))
       .send({
         listingId: ids.listingA,
         startAt,

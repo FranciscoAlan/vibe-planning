@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function AccountPage() {
   return (
-    <main className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
+    <main lang="en" className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
       <Link className="text-sm font-semibold text-forest-700" href="/">
         Vibe Planners
       </Link>

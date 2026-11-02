@@ -32,7 +32,7 @@ import type {
   ListingBookingSettingsInput,
 } from '@vibe-planners/shared-validations';
 import { JwtAuthGuard } from '../identity/guards/jwt-auth.guard.js';
-import type { JwtPayload } from '../identity/strategies/jwt.strategy.js';
+import type { JwtPayload, OrganizationJwtPayload } from '../identity/strategies/jwt.strategy.js';
 import { BookingService } from './booking.service.js';
 
 type AuthenticatedRequest = Request & { user?: JwtPayload };
@@ -272,21 +272,25 @@ export class BookingController {
     );
   }
 
-  private requirePrincipal(req: AuthenticatedRequest): JwtPayload {
+  private requirePrincipal(req: AuthenticatedRequest): OrganizationJwtPayload {
     const principal = req.user;
     if (!principal?.sub || !principal.tenantId || !principal.role) {
       throw new UnauthorizedException('Authenticated user and tenant are required');
     }
-    return principal;
+    return principal as OrganizationJwtPayload;
   }
 
-  private requireRole(principal: JwtPayload, role: 'PROVIDER' | 'CLIENT'): void {
-    if (principal.role !== role) {
+  private requireRole(principal: OrganizationJwtPayload, role: 'PROVIDER' | 'CLIENT'): void {
+    const hasRole = principal.role === role || (role === 'PROVIDER' && principal.role === 'OWNER');
+    if (!hasRole) {
       throw new ForbiddenException(`Only ${role.toLowerCase()}s can perform this operation`);
     }
   }
 
-  private requireCustomerOrProvider(principal: JwtPayload): 'CLIENT' | 'PROVIDER' {
+  private requireCustomerOrProvider(principal: OrganizationJwtPayload): 'CLIENT' | 'PROVIDER' {
+    if (principal.role === 'OWNER') {
+      return 'PROVIDER';
+    }
     if (principal.role !== 'CLIENT' && principal.role !== 'PROVIDER') {
       throw new ForbiddenException('Only clients and providers can view availability');
     }

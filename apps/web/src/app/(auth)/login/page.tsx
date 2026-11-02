@@ -3,7 +3,7 @@ import { Button } from '@vibe-planners/ui';
 
 export default function LoginPage() {
   return (
-    <main className="grid min-h-screen place-items-center px-5 py-12">
+    <main lang="en" className="grid min-h-screen place-items-center px-5 py-12">
       <section className="w-full max-w-sm">
         <p className="font-serif text-2xl text-stone-900">Vibe Planners</p>
         <h1 className="mt-8 font-serif text-3xl text-stone-900">Welcome back</h1>

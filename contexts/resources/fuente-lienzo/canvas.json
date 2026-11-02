@@ -1,0 +1,1992 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "AdBoAds.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Anuncios · Backoffice · Revisión de anuncios",
+      "w": 1280,
+      "x": 0,
+      "y": 47818
+    },
+    "AdDetalle.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Anuncios · Detalle de campaña",
+      "w": 1280,
+      "x": 1400,
+      "y": 45578
+    },
+    "AdPaso1.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Anuncios · Crear anuncio · Objetivo",
+      "w": 1280,
+      "x": 0,
+      "y": 44458
+    },
+    "AdPaso2.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Anuncios · Crear anuncio · Audiencia y presupuesto",
+      "w": 1280,
+      "x": 1400,
+      "y": 44458
+    },
+    "AdPaso3.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Anuncios · Crear anuncio · Revisión y pago",
+      "w": 1280,
+      "x": 0,
+      "y": 45578
+    },
+    "AdPoliticas.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Anuncios · Políticas de anuncios",
+      "w": 1280,
+      "x": 1400,
+      "y": 46698
+    },
+    "AdSaldo.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Anuncios · Saldo y facturación de anuncios",
+      "w": 1280,
+      "x": 0,
+      "y": 46698
+    },
+    "App.dc.html": {
+      "h": 844,
+      "title": "App móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 680
+    },
+    "Ayuda.dc.html": {
+      "expand": "fill",
+      "h": 1900,
+      "title": "Ayuda y soporte",
+      "w": 1280,
+      "x": 0,
+      "y": 17088
+    },
+    "AyudaMovil.dc.html": {
+      "h": 844,
+      "title": "Ayuda móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 17088
+    },
+    "Backoffice.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "title": "Backoffice",
+      "w": 1280,
+      "x": 0,
+      "y": 12928
+    },
+    "BackofficeMovil.dc.html": {
+      "h": 844,
+      "title": "Backoffice móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 12928
+    },
+    "BoAnalytics.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Backoffice · Analytics",
+      "w": 1280,
+      "x": 1840,
+      "y": 17008
+    },
+    "BoComisiones.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Backoffice · Comisiones",
+      "w": 1280,
+      "x": 1840,
+      "y": 15988
+    },
+    "BoDisputas.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Backoffice · Reportes y disputas",
+      "w": 1280,
+      "x": 1840,
+      "y": 13948
+    },
+    "BoKYC.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Backoffice · Verificación KYC",
+      "w": 1280,
+      "x": 1840,
+      "y": 12928
+    },
+    "BoLogs.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Backoffice · Logs",
+      "w": 1280,
+      "x": 3240,
+      "y": 17008
+    },
+    "BoModeracion.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Backoffice · Moderación",
+      "w": 1280,
+      "x": 3240,
+      "y": 12928
+    },
+    "BoParametros.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Backoffice · Parámetros",
+      "w": 1280,
+      "x": 3240,
+      "y": 15988
+    },
+    "BoPlaneadores.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Backoffice · Planeadores",
+      "w": 1280,
+      "x": 3240,
+      "y": 14968
+    },
+    "BoProveedores.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Backoffice · Proveedores",
+      "w": 1280,
+      "x": 1840,
+      "y": 14968
+    },
+    "BoUsuarios.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Backoffice · Usuarios y baneos",
+      "w": 1280,
+      "x": 3240,
+      "y": 13948
+    },
+    "Calendario.dc.html": {
+      "expand": "fill",
+      "h": 960,
+      "title": "Calendario proveedor",
+      "w": 1280,
+      "x": 20,
+      "y": 8708
+    },
+    "CalendarioMovil.dc.html": {
+      "h": 844,
+      "title": "Calendario móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 8708
+    },
+    "Componentes.dc.html": {
+      "h": 1250,
+      "title": "Componentes · Base",
+      "w": 980,
+      "x": 960,
+      "y": 0
+    },
+    "CrearMovil.dc.html": {
+      "h": 844,
+      "title": "Crear publicación móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 9788
+    },
+    "CrearPublicacion.dc.html": {
+      "expand": "fill",
+      "h": 2000,
+      "title": "Crear publicación",
+      "w": 1280,
+      "x": 0,
+      "y": 9788
+    },
+    "Cta404.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Error 404",
+      "w": 1280,
+      "x": 20,
+      "y": 36458
+    },
+    "CtaAnuncios.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Anuncios",
+      "w": 1280,
+      "x": 1400,
+      "y": 34218
+    },
+    "CtaEquipo.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Equipo y permisos",
+      "w": 1280,
+      "x": 0,
+      "y": 33018
+    },
+    "CtaMantenimiento.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Mantenimiento",
+      "w": 1280,
+      "x": 1400,
+      "y": 36458
+    },
+    "CtaMentoria.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Mentoría",
+      "w": 1280,
+      "x": 1400,
+      "y": 35338
+    },
+    "CtaMercado.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Mercado",
+      "w": 1280,
+      "x": 0,
+      "y": 35338
+    },
+    "CtaNotificaciones.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Notificaciones",
+      "w": 1280,
+      "x": 0,
+      "y": 31898
+    },
+    "CtaPerfil.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Mi perfil",
+      "w": 1280,
+      "x": 0,
+      "y": 29658
+    },
+    "CtaPreferencias.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Configuración · Notificaciones y preferencias",
+      "w": 1280,
+      "x": 1400,
+      "y": 30778
+    },
+    "CtaPrivacidad.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Configuración · Privacidad y datos",
+      "w": 1280,
+      "x": 0,
+      "y": 34218
+    },
+    "CtaReservaciones.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Reservaciones",
+      "w": 1280,
+      "x": 1400,
+      "y": 31898
+    },
+    "CtaSeguridad.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Configuración · Cuenta y seguridad",
+      "w": 1280,
+      "x": 0,
+      "y": 30778
+    },
+    "CtaSuscripcion.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Planes de suscripción",
+      "w": 1280,
+      "x": 1400,
+      "y": 33018
+    },
+    "CtaVacios.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Estados vacíos",
+      "w": 1280,
+      "x": 0,
+      "y": 37578
+    },
+    "CtaVerificacion.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Verificación de identidad",
+      "w": 1280,
+      "x": 1400,
+      "y": 29658
+    },
+    "DashboardMovil.dc.html": {
+      "h": 844,
+      "title": "Dashboard móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 7688
+    },
+    "DashboardProveedor.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Dashboard proveedor",
+      "w": 1280,
+      "x": 0,
+      "y": 7688
+    },
+    "Detalle.dc.html": {
+      "expand": "fill",
+      "h": 1600,
+      "title": "Detalle de publicación",
+      "w": 1280,
+      "x": 0,
+      "y": 4748
+    },
+    "DetalleMovil.dc.html": {
+      "h": 844,
+      "title": "Detalle móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 4748
+    },
+    "EmailAportacion.dc.html": {
+      "h": 760,
+      "title": "Email · Invitación a aportar",
+      "w": 640,
+      "x": 760,
+      "y": 26598
+    },
+    "EmailBienvenida.dc.html": {
+      "h": 760,
+      "title": "Email · Bienvenida",
+      "w": 640,
+      "x": 0,
+      "y": 25718
+    },
+    "EmailCancelacion.dc.html": {
+      "h": 760,
+      "title": "Email · Cancelación y reembolso",
+      "w": 640,
+      "x": 1520,
+      "y": 26598
+    },
+    "EmailCodigo.dc.html": {
+      "h": 760,
+      "title": "Email · Código de verificación",
+      "w": 640,
+      "x": 760,
+      "y": 25718
+    },
+    "EmailCotizacion.dc.html": {
+      "h": 760,
+      "title": "Email · Cotización recibida",
+      "w": 640,
+      "x": 1520,
+      "y": 25718
+    },
+    "EmailRecibo.dc.html": {
+      "h": 760,
+      "title": "Email · Recibo de pago",
+      "w": 640,
+      "x": 0,
+      "y": 26598
+    },
+    "EmailRecordatorio.dc.html": {
+      "h": 760,
+      "title": "Email · Recordatorio",
+      "w": 640,
+      "x": 3040,
+      "y": 25718
+    },
+    "EmailResena.dc.html": {
+      "h": 760,
+      "title": "Email · Nueva reseña",
+      "w": 640,
+      "x": 2280,
+      "y": 26598
+    },
+    "EmailReserva.dc.html": {
+      "h": 760,
+      "title": "Email · Reserva confirmada",
+      "w": 640,
+      "x": 2280,
+      "y": 25718
+    },
+    "EmailSuspension.dc.html": {
+      "h": 760,
+      "title": "Email · Aviso de cuenta",
+      "w": 640,
+      "x": 3040,
+      "y": 26598
+    },
+    "Favoritos.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Favoritos y colecciones",
+      "w": 1280,
+      "x": 0,
+      "y": 20678
+    },
+    "FavoritosMovil.dc.html": {
+      "h": 844,
+      "title": "Favoritos móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 20678
+    },
+    "FinApMovil.dc.html": {
+      "h": 844,
+      "title": "Aportación móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 41018
+    },
+    "FinAporta.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Finanzas · Página pública de aportación",
+      "w": 1280,
+      "x": 0,
+      "y": 41018
+    },
+    "FinBoPagos.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Finanzas · Backoffice · Pagos y garantía",
+      "w": 1280,
+      "x": 0,
+      "y": 43258
+    },
+    "FinCheckout.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Finanzas · Pago de reserva",
+      "w": 1280,
+      "x": 0,
+      "y": 38778
+    },
+    "FinCheckoutMovil.dc.html": {
+      "h": 844,
+      "title": "Pago móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 38778
+    },
+    "FinFacturas.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Finanzas · Facturas y CFDI",
+      "w": 1280,
+      "x": 0,
+      "y": 42138
+    },
+    "FinGanancias.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Finanzas · Ganancias",
+      "w": 1280,
+      "x": 1400,
+      "y": 42138
+    },
+    "FinHistorial.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Finanzas · Historial de pagos",
+      "w": 1280,
+      "x": 0,
+      "y": 39898
+    },
+    "FinLinkAporte.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Finanzas · Crear link de aportación",
+      "w": 1280,
+      "x": 1400,
+      "y": 39898
+    },
+    "FinMetodos.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Finanzas · Métodos de pago",
+      "w": 1280,
+      "x": 1400,
+      "y": 38778
+    },
+    "FinRetiro.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Finanzas · Retirar fondos",
+      "w": 1280,
+      "x": 1400,
+      "y": 41018
+    },
+    "Finanzas.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "title": "Finanzas",
+      "w": 1280,
+      "x": 0,
+      "y": 15668
+    },
+    "FinanzasMovil.dc.html": {
+      "h": 844,
+      "title": "Finanzas móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 15668
+    },
+    "Home.dc.html": {
+      "expand": "fill",
+      "h": 760,
+      "title": "Home web",
+      "w": 1280,
+      "x": 0,
+      "y": 680
+    },
+    "HomeSesion.dc.html": {
+      "expand": "fill",
+      "h": 2200,
+      "title": "Home con sesión",
+      "w": 1280,
+      "x": 0,
+      "y": 21798
+    },
+    "HomeSesionMovil.dc.html": {
+      "h": 844,
+      "title": "Home con sesión móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 21798
+    },
+    "Legal.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "title": "Páginas legales",
+      "w": 1280,
+      "x": 0,
+      "y": 24118
+    },
+    "LegalMovil.dc.html": {
+      "h": 844,
+      "title": "Legal móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 24118
+    },
+    "Login.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Login web",
+      "w": 1280,
+      "x": 0,
+      "y": 1560
+    },
+    "LoginMovil.dc.html": {
+      "h": 844,
+      "title": "Login móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 1644
+    },
+    "Main.dc.html": {
+      "h": 520,
+      "title": "Logo",
+      "w": 880,
+      "x": 0,
+      "y": 0
+    },
+    "Mensajes.dc.html": {
+      "expand": "fill",
+      "h": 900,
+      "title": "Mensajes",
+      "w": 1280,
+      "x": 0,
+      "y": 11908
+    },
+    "MensajesMovil.dc.html": {
+      "h": 844,
+      "title": "Mensajes móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 11908
+    },
+    "Onboarding.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Onboarding web",
+      "w": 1280,
+      "x": 0,
+      "y": 2480
+    },
+    "Onboarding2.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Onboarding paso 2",
+      "w": 1280,
+      "x": 2770,
+      "y": 2640
+    },
+    "Onboarding2Movil.dc.html": {
+      "h": 844,
+      "title": "Onboarding paso 2 móvil",
+      "w": 390,
+      "x": 1830,
+      "y": 2640
+    },
+    "Onboarding3.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Onboarding paso 3",
+      "w": 1280,
+      "x": 2770,
+      "y": 3560
+    },
+    "Onboarding3Movil.dc.html": {
+      "h": 844,
+      "title": "Onboarding paso 3 móvil",
+      "w": 390,
+      "x": 2300,
+      "y": 2640
+    },
+    "OnboardingMovil.dc.html": {
+      "h": 844,
+      "title": "Onboarding móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 2564
+    },
+    "PerfilProveedor.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Perfil del proveedor",
+      "w": 1280,
+      "x": 0,
+      "y": 14448
+    },
+    "PerfilProveedorMovil.dc.html": {
+      "h": 844,
+      "title": "Perfil proveedor móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 14448
+    },
+    "Plan.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Gestión de plan",
+      "w": 1280,
+      "x": 0,
+      "y": 6468
+    },
+    "PlanMovil.dc.html": {
+      "h": 844,
+      "title": "Plan móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 6468
+    },
+    "PlanOnb2.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Planeador paso 2",
+      "w": 1280,
+      "x": 2770,
+      "y": 6320
+    },
+    "PlanOnb2Movil.dc.html": {
+      "h": 844,
+      "title": "Planeador paso 2 móvil",
+      "w": 390,
+      "x": 1830,
+      "y": 6320
+    },
+    "PlanOnb3.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Planeador paso 3",
+      "w": 1280,
+      "x": 2770,
+      "y": 7240
+    },
+    "PlanOnb3Movil.dc.html": {
+      "h": 844,
+      "title": "Planeador paso 3 móvil",
+      "w": 390,
+      "x": 2300,
+      "y": 6320
+    },
+    "PlantillasPush.dc.html": {
+      "h": 1900,
+      "title": "Plantillas push",
+      "w": 640,
+      "x": 760,
+      "y": 27558
+    },
+    "PlantillasSMS.dc.html": {
+      "h": 1500,
+      "title": "Plantillas SMS",
+      "w": 640,
+      "x": 0,
+      "y": 27558
+    },
+    "ProvOnb2.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Proveedor paso 2",
+      "w": 1280,
+      "x": 2770,
+      "y": 4480
+    },
+    "ProvOnb2Movil.dc.html": {
+      "h": 844,
+      "title": "Proveedor paso 2 móvil",
+      "w": 390,
+      "x": 1830,
+      "y": 4480
+    },
+    "ProvOnb3.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Proveedor paso 3",
+      "w": 1280,
+      "x": 2770,
+      "y": 5400
+    },
+    "ProvOnb3Movil.dc.html": {
+      "h": 844,
+      "title": "Proveedor paso 3 móvil",
+      "w": 390,
+      "x": 2300,
+      "y": 4480
+    },
+    "Recompensas.dc.html": {
+      "expand": "fill",
+      "h": 1450,
+      "title": "Recompensas",
+      "w": 1280,
+      "x": 0,
+      "y": 19108
+    },
+    "RecompensasMovil.dc.html": {
+      "h": 844,
+      "title": "Recompensas móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 19108
+    },
+    "Registro.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Registro por correo",
+      "w": 1280,
+      "x": 3040,
+      "y": 0
+    },
+    "RegistroMovil.dc.html": {
+      "h": 844,
+      "title": "Registro móvil",
+      "w": 390,
+      "x": 4400,
+      "y": 0
+    },
+    "Resultados.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Resultados de búsqueda",
+      "w": 1280,
+      "x": 0,
+      "y": 3528
+    },
+    "ResultadosMovil.dc.html": {
+      "h": 844,
+      "title": "Resultados móvil",
+      "w": 390,
+      "x": 1360,
+      "y": 3528
+    },
+    "SistemaDiseno.dc.html": {
+      "h": 1250,
+      "title": "Sistema de diseño",
+      "w": 1000,
+      "x": 1960,
+      "y": 0
+    },
+    "Verificacion.dc.html": {
+      "h": 844,
+      "title": "Verificación SMS",
+      "w": 390,
+      "x": 1830,
+      "y": 1644
+    },
+    "PgCotizacion.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Flujo · Solicitar cotización",
+      "w": 1280,
+      "x": 0,
+      "y": 49018
+    },
+    "PgDetalleReserva.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Flujo · Detalle de reserva",
+      "w": 1280,
+      "x": 1400,
+      "y": 49018
+    },
+    "PgReservasProv.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Flujo · Reservas del proveedor",
+      "w": 1280,
+      "x": 0,
+      "y": 50138
+    },
+    "PgResena.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Flujo · Escribir reseña",
+      "w": 1280,
+      "x": 1400,
+      "y": 50138
+    },
+    "PgCancelar.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Flujo · Cancelar reserva",
+      "w": 1280,
+      "x": 0,
+      "y": 51258
+    },
+    "PgMisPubs.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Flujo · Mis publicaciones",
+      "w": 1280,
+      "x": 1400,
+      "y": 51258
+    },
+    "PgPlaneador.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Flujo · Panel del planeador",
+      "w": 1280,
+      "x": 0,
+      "y": 52378
+    },
+    "PgIntegraciones.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Flujo · Integraciones",
+      "w": 1280,
+      "x": 1400,
+      "y": 52378
+    },
+    "PgReportes.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Flujo · Reportes del proveedor",
+      "w": 1280,
+      "x": 0,
+      "y": 53498
+    },
+    "PgAcerca.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Flujo · Acerca de",
+      "w": 1280,
+      "x": 1400,
+      "y": 53498
+    },
+    "PgCotizacionMovil.dc.html": {
+      "h": 844,
+      "title": "Flujo · Cotización móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 49018
+    },
+    "PgDetalleReservaMovil.dc.html": {
+      "h": 844,
+      "title": "Flujo · Detalle de reserva móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 49018
+    },
+    "PgResenaMovil.dc.html": {
+      "h": 844,
+      "title": "Flujo · Reseña móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 50138
+    },
+    "PgCancelarMovil.dc.html": {
+      "h": 844,
+      "title": "Flujo · Cancelar reserva móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 51258
+    },
+    "PgReservasProvMovil.dc.html": {
+      "h": 844,
+      "title": "Flujo · Reservas proveedor móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 50138
+    },
+    "CnServicios.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Contenido · Servicios",
+      "w": 1280,
+      "x": 0,
+      "y": 54698
+    },
+    "CnNews.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Contenido · News",
+      "w": 1280,
+      "x": 1400,
+      "y": 54698
+    },
+    "CnBlog.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Contenido · Blog",
+      "w": 1280,
+      "x": 0,
+      "y": 55818
+    },
+    "CnCommunity.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Contenido · Community",
+      "w": 1280,
+      "x": 1400,
+      "y": 55818
+    },
+    "CnColeccion.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Contenido · Colección",
+      "w": 1280,
+      "x": 0,
+      "y": 56938
+    },
+    "CnBoCatalogo.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Backoffice · Catálogo",
+      "w": 1280,
+      "x": 1400,
+      "y": 56938
+    },
+    "CnBoContenido.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Backoffice · Contenido",
+      "w": 1280,
+      "x": 0,
+      "y": 58058
+    },
+    "CtaPerfilMovil.dc.html": {
+      "h": 844,
+      "title": "Mi perfil · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 29658
+    },
+    "CtaVerificacionMovil.dc.html": {
+      "h": 844,
+      "title": "Verificación de identidad · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 29658
+    },
+    "CtaSeguridadMovil.dc.html": {
+      "h": 844,
+      "title": "Configuración · Cuenta y seguridad · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 30778
+    },
+    "CtaNotificacionesMovil.dc.html": {
+      "h": 844,
+      "title": "Notificaciones · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 31898
+    },
+    "CtaReservacionesMovil.dc.html": {
+      "h": 844,
+      "title": "Reservaciones · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 31898
+    },
+    "CtaMentoriaMovil.dc.html": {
+      "h": 844,
+      "title": "Mentoría · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 35338
+    },
+    "Cta404Movil.dc.html": {
+      "h": 844,
+      "title": "Error 404 · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 36458
+    },
+    "FinMetodosMovil.dc.html": {
+      "h": 844,
+      "title": "Finanzas · Métodos de pago · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 38778
+    },
+    "FinHistorialMovil.dc.html": {
+      "h": 844,
+      "title": "Finanzas · Historial de pagos · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 39898
+    },
+    "FinLinkAporteMovil.dc.html": {
+      "h": 844,
+      "title": "Finanzas · Crear link de aportación · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 39898
+    },
+    "PgMisPubsMovil.dc.html": {
+      "h": 844,
+      "title": "Flujo · Mis publicaciones · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 51258
+    },
+    "PgPlaneadorMovil.dc.html": {
+      "h": 844,
+      "title": "Flujo · Panel del planeador · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 52378
+    },
+    "CtaAnunciosMovil.dc.html": {
+      "h": 844,
+      "title": "Anuncios · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 34218
+    },
+    "AdPaso1Movil.dc.html": {
+      "h": 844,
+      "title": "Anuncios · Crear anuncio · Objetivo · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 44458
+    },
+    "FinRetiroMovil.dc.html": {
+      "h": 844,
+      "title": "Finanzas · Retirar fondos · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 41018
+    },
+    "CtaPreferenciasMovil.dc.html": {
+      "h": 844,
+      "title": "Configuración · Notificaciones y preferencias · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 30778
+    },
+    "CtaPrivacidadMovil.dc.html": {
+      "h": 844,
+      "title": "Configuración · Privacidad y datos · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 34218
+    },
+    "CtaEquipoMovil.dc.html": {
+      "h": 844,
+      "title": "Equipo y permisos · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 33018
+    },
+    "CtaSuscripcionMovil.dc.html": {
+      "h": 844,
+      "title": "Planes de suscripción · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 33018
+    },
+    "CtaMercadoMovil.dc.html": {
+      "h": 844,
+      "title": "Mercado · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 35338
+    },
+    "PgReportesMovil.dc.html": {
+      "h": 844,
+      "title": "Flujo · Reportes del proveedor · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 53498
+    },
+    "PgIntegracionesMovil.dc.html": {
+      "h": 844,
+      "title": "Flujo · Integraciones · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 52378
+    },
+    "FinFacturasMovil.dc.html": {
+      "h": 844,
+      "title": "Finanzas · Facturas y CFDI · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 42138
+    },
+    "FinGananciasMovil.dc.html": {
+      "h": 844,
+      "title": "Finanzas · Ganancias · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 42138
+    },
+    "CtaMantenimientoMovil.dc.html": {
+      "h": 844,
+      "title": "Mantenimiento · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 36458
+    },
+    "CtaVaciosMovil.dc.html": {
+      "h": 844,
+      "title": "Estados vacíos · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 37578
+    },
+    "AdPaso2Movil.dc.html": {
+      "h": 844,
+      "title": "Anuncios · Crear anuncio · Audiencia y presupuesto · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 44458
+    },
+    "AdPaso3Movil.dc.html": {
+      "h": 844,
+      "title": "Anuncios · Crear anuncio · Revisión y pago · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 45578
+    },
+    "AdDetalleMovil.dc.html": {
+      "h": 844,
+      "title": "Anuncios · Detalle de campaña · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 45578
+    },
+    "AdSaldoMovil.dc.html": {
+      "h": 844,
+      "title": "Anuncios · Saldo y facturación de anuncios · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 46698
+    },
+    "AdPoliticasMovil.dc.html": {
+      "h": 844,
+      "title": "Anuncios · Políticas de anuncios · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 46698
+    },
+    "PgAcercaMovil.dc.html": {
+      "h": 844,
+      "title": "Flujo · Acerca de · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 53498
+    },
+    "CnServiciosMovil.dc.html": {
+      "h": 844,
+      "title": "Contenido · Servicios · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 54698
+    },
+    "CnNewsMovil.dc.html": {
+      "h": 844,
+      "title": "Contenido · News · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 54698
+    },
+    "CnBlogMovil.dc.html": {
+      "h": 844,
+      "title": "Contenido · Blog · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 55818
+    },
+    "CnCommunityMovil.dc.html": {
+      "h": 844,
+      "title": "Contenido · Community · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 55818
+    },
+    "CnColeccionMovil.dc.html": {
+      "h": 844,
+      "title": "Contenido · Colección · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 56938
+    },
+    "CmpFormularios.dc.html": {
+      "h": 1600,
+      "title": "Componentes · Formularios",
+      "w": 1000,
+      "x": 0,
+      "y": 59258
+    },
+    "CmpNavegacion.dc.html": {
+      "h": 1300,
+      "title": "Componentes · Navegación",
+      "w": 1000,
+      "x": 1100,
+      "y": 59258
+    },
+    "CmpDatos.dc.html": {
+      "h": 1550,
+      "title": "Componentes · Datos y tarjetas",
+      "w": 1000,
+      "x": 0,
+      "y": 60978
+    },
+    "CmpFeedback.dc.html": {
+      "h": 1250,
+      "title": "Componentes · Retroalimentación",
+      "w": 1000,
+      "x": 0,
+      "y": 62648
+    },
+    "CmpDominio.dc.html": {
+      "h": 1450,
+      "title": "Componentes · Dominio",
+      "w": 1000,
+      "x": 1100,
+      "y": 60978
+    },
+    "CmpMapaGaleria.dc.html": {
+      "w": 1000,
+      "x": 1100,
+      "y": 62648,
+      "h": 1700,
+      "title": "Componentes · Mapa y galería"
+    },
+    "CmpSelectores.dc.html": {
+      "w": 1000,
+      "x": 0,
+      "y": 64468,
+      "h": 1900,
+      "title": "Componentes · Selectores y superposiciones"
+    },
+    "CmpDatosAvanzados.dc.html": {
+      "w": 1000,
+      "x": 1100,
+      "y": 64468,
+      "h": 1800,
+      "title": "Componentes · Datos avanzados"
+    },
+    "CmpSistema.dc.html": {
+      "w": 1000,
+      "x": 0,
+      "y": 66488,
+      "h": 1300,
+      "title": "Componentes · Estados del sistema"
+    },
+    "InventarioComponentes.dc.html": {
+      "expand": "fill",
+      "w": 1200,
+      "h": 3600,
+      "x": 0,
+      "y": 67908,
+      "title": "Inventario de componentes"
+    },
+    "ResultadosMapa.dc.html": {
+      "expand": "fill",
+      "w": 1280,
+      "h": 1000,
+      "x": 0,
+      "y": 71708,
+      "title": "Resultados · Vista de mapa"
+    },
+    "ResultadosMapaMovil.dc.html": {
+      "w": 390,
+      "h": 844,
+      "x": 2780,
+      "y": 71708,
+      "title": "Resultados · Vista de mapa · móvil"
+    },
+    "DetalleGaleria.dc.html": {
+      "expand": "fill",
+      "w": 1280,
+      "h": 1000,
+      "x": 1400,
+      "y": 71708,
+      "title": "Detalle · Visor de galería"
+    },
+    "DetalleGaleriaMovil.dc.html": {
+      "w": 390,
+      "h": 844,
+      "x": 3270,
+      "y": 71708,
+      "title": "Detalle · Visor de galería · móvil"
+    },
+    "DetalleUbicacion.dc.html": {
+      "expand": "fill",
+      "w": 1280,
+      "h": 900,
+      "x": 0,
+      "y": 72828,
+      "title": "Detalle · Ubicación y mapa"
+    },
+    "CrearUbicacion.dc.html": {
+      "expand": "fill",
+      "w": 1280,
+      "h": 1000,
+      "x": 1400,
+      "y": 72828,
+      "title": "Crear publicación · Ubicación"
+    },
+    "NxPolCancel.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Política de cancelación y reembolsos",
+      "w": 1280,
+      "x": 0,
+      "y": 74028
+    },
+    "NxPolDevol.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Política de devoluciones",
+      "w": 1280,
+      "x": 1400,
+      "y": 74028
+    },
+    "NxPolModif.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Política de modificaciones",
+      "w": 1280,
+      "x": 0,
+      "y": 75248
+    },
+    "NxConfianza.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Centro de confianza y seguridad",
+      "w": 1280,
+      "x": 1400,
+      "y": 75248
+    },
+    "NxModificar.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Modificar reserva",
+      "w": 1280,
+      "x": 0,
+      "y": 76468
+    },
+    "NxDisputa.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Abrir disputa o devolución",
+      "w": 1280,
+      "x": 1400,
+      "y": 76468
+    },
+    "NxReportar.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Reportar",
+      "w": 1280,
+      "x": 0,
+      "y": 77688
+    },
+    "NxContrato.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Contrato de servicio",
+      "w": 1280,
+      "x": 1400,
+      "y": 77688
+    },
+    "NxComparador.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Comparador de cotizaciones",
+      "w": 1280,
+      "x": 0,
+      "y": 78908
+    },
+    "NxSuspendida.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Cuenta suspendida",
+      "w": 1280,
+      "x": 1400,
+      "y": 78908
+    },
+    "NxChatbot.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Chatbot de soporte",
+      "w": 1280,
+      "x": 0,
+      "y": 80128
+    },
+    "NxTickets.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Mis tickets de soporte",
+      "w": 1280,
+      "x": 1400,
+      "y": 80128
+    },
+    "NxTicket.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Detalle de ticket",
+      "w": 1280,
+      "x": 0,
+      "y": 81348
+    },
+    "NxArticulo.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Artículo de ayuda",
+      "w": 1280,
+      "x": 1400,
+      "y": 81348
+    },
+    "NxSSO.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Acceso con SSO",
+      "w": 1280,
+      "x": 0,
+      "y": 82568
+    },
+    "NxOrgAjustes.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Configuración de la organización",
+      "w": 1280,
+      "x": 1400,
+      "y": 82568
+    },
+    "NxOrgSeguridad.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Seguridad de la organización",
+      "w": 1280,
+      "x": 0,
+      "y": 83788
+    },
+    "NxHistorial.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Historial de actividad",
+      "w": 1280,
+      "x": 1400,
+      "y": 83788
+    },
+    "NxBoAcceso.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Acceso",
+      "w": 1280,
+      "x": 0,
+      "y": 85008
+    },
+    "NxBoSoporte.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Soporte",
+      "w": 1280,
+      "x": 1400,
+      "y": 85008
+    },
+    "NxBoDisputa.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Caso de disputa",
+      "w": 1280,
+      "x": 0,
+      "y": 86228
+    },
+    "NxBoUsuario.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Usuario 360",
+      "w": 1280,
+      "x": 1400,
+      "y": 86228
+    },
+    "NxBoChatbot.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Chatbot",
+      "w": 1280,
+      "x": 0,
+      "y": 87448
+    },
+    "NxBoAuditoria.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Auditoría",
+      "w": 1280,
+      "x": 1400,
+      "y": 87448
+    },
+    "NxBoRoles.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Roles internos",
+      "w": 1280,
+      "x": 0,
+      "y": 88668
+    },
+    "NxBoSalud.dc.html": {
+      "expand": "fill",
+      "h": 1100,
+      "title": "Backoffice · Salud de la plataforma",
+      "w": 1280,
+      "x": 1400,
+      "y": 88668
+    },
+    "NxChatbotMovil.dc.html": {
+      "h": 844,
+      "title": "Chatbot de soporte · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 80128
+    },
+    "NyInvitados.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Lista de invitados",
+      "w": 1280,
+      "x": 0,
+      "y": 89968
+    },
+    "NyPresupuesto.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Presupuesto del evento",
+      "w": 1280,
+      "x": 1400,
+      "y": 89968
+    },
+    "NyImpuestos.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Impuestos y retenciones",
+      "w": 1280,
+      "x": 0,
+      "y": 91088
+    },
+    "NyInvitadosMovil.dc.html": {
+      "h": 844,
+      "title": "Lista de invitados · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 89968
+    },
+    "NyPresupuestoMovil.dc.html": {
+      "h": 844,
+      "title": "Presupuesto del evento · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 89968
+    },
+    "NyImpuestosMovil.dc.html": {
+      "h": 844,
+      "title": "Impuestos y retenciones · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 91088
+    },
+    "NxModificarMovil.dc.html": {
+      "h": 844,
+      "title": "Modificar reserva · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 76468
+    },
+    "NxDisputaMovil.dc.html": {
+      "h": 844,
+      "title": "Abrir disputa o devolución · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 76468
+    },
+    "NxReportarMovil.dc.html": {
+      "h": 844,
+      "title": "Reportar · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 77688
+    },
+    "NxContratoMovil.dc.html": {
+      "h": 844,
+      "title": "Contrato de servicio · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 77688
+    },
+    "NxComparadorMovil.dc.html": {
+      "h": 844,
+      "title": "Comparador de cotizaciones · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 78908
+    },
+    "NxSuspendidaMovil.dc.html": {
+      "h": 844,
+      "title": "Cuenta suspendida · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 78908
+    },
+    "NxTicketsMovil.dc.html": {
+      "h": 844,
+      "title": "Mis tickets de soporte · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 80128
+    },
+    "NxTicketMovil.dc.html": {
+      "h": 844,
+      "title": "Detalle de ticket · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 81348
+    },
+    "NxArticuloMovil.dc.html": {
+      "h": 844,
+      "title": "Artículo de ayuda · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 81348
+    },
+    "NxSSOMovil.dc.html": {
+      "h": 844,
+      "title": "Acceso con SSO · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 82568
+    },
+    "NxHistorialMovil.dc.html": {
+      "h": 844,
+      "title": "Historial de actividad · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 83788
+    },
+    "NxPolCancelMovil.dc.html": {
+      "h": 844,
+      "title": "Política de cancelación y reembolsos · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 74028
+    },
+    "NxPolDevolMovil.dc.html": {
+      "h": 844,
+      "title": "Política de devoluciones · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 74028
+    },
+    "NxPolModifMovil.dc.html": {
+      "h": 844,
+      "title": "Política de modificaciones · móvil",
+      "w": 390,
+      "x": 2780,
+      "y": 75248
+    },
+    "NxConfianzaMovil.dc.html": {
+      "h": 844,
+      "title": "Centro de confianza y seguridad · móvil",
+      "w": 390,
+      "x": 3270,
+      "y": 75248
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-26T12:00:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {},
+  "order": [
+    "NxConfianzaMovil.dc.html",
+    "NxPolModifMovil.dc.html",
+    "NxPolDevolMovil.dc.html",
+    "NxPolCancelMovil.dc.html",
+    "NxHistorialMovil.dc.html",
+    "NxSSOMovil.dc.html",
+    "NxArticuloMovil.dc.html",
+    "NxTicketMovil.dc.html",
+    "NxTicketsMovil.dc.html",
+    "NxSuspendidaMovil.dc.html",
+    "NxComparadorMovil.dc.html",
+    "NxContratoMovil.dc.html",
+    "NxReportarMovil.dc.html",
+    "NxDisputaMovil.dc.html",
+    "NxModificarMovil.dc.html",
+    "NyImpuestosMovil.dc.html",
+    "NyPresupuestoMovil.dc.html",
+    "NyInvitadosMovil.dc.html",
+    "NyImpuestos.dc.html",
+    "NyPresupuesto.dc.html",
+    "NyInvitados.dc.html",
+    "NxChatbotMovil.dc.html",
+    "NxBoSalud.dc.html",
+    "NxBoRoles.dc.html",
+    "NxBoAuditoria.dc.html",
+    "NxBoChatbot.dc.html",
+    "NxBoUsuario.dc.html",
+    "NxBoDisputa.dc.html",
+    "NxBoSoporte.dc.html",
+    "NxBoAcceso.dc.html",
+    "NxHistorial.dc.html",
+    "NxOrgSeguridad.dc.html",
+    "NxOrgAjustes.dc.html",
+    "NxSSO.dc.html",
+    "NxArticulo.dc.html",
+    "NxTicket.dc.html",
+    "NxTickets.dc.html",
+    "NxChatbot.dc.html",
+    "NxSuspendida.dc.html",
+    "NxComparador.dc.html",
+    "NxContrato.dc.html",
+    "NxReportar.dc.html",
+    "NxDisputa.dc.html",
+    "NxModificar.dc.html",
+    "NxConfianza.dc.html",
+    "NxPolModif.dc.html",
+    "NxPolDevol.dc.html",
+    "NxPolCancel.dc.html",
+    "CrearUbicacion.dc.html",
+    "DetalleUbicacion.dc.html",
+    "DetalleGaleriaMovil.dc.html",
+    "DetalleGaleria.dc.html",
+    "ResultadosMapaMovil.dc.html",
+    "ResultadosMapa.dc.html",
+    "InventarioComponentes.dc.html",
+    "CmpSistema.dc.html",
+    "CmpDatosAvanzados.dc.html",
+    "CmpSelectores.dc.html",
+    "CmpMapaGaleria.dc.html",
+    "CmpDominio.dc.html",
+    "CmpFeedback.dc.html",
+    "CmpDatos.dc.html",
+    "CmpNavegacion.dc.html",
+    "CmpFormularios.dc.html",
+    "CnColeccionMovil.dc.html",
+    "CnCommunityMovil.dc.html",
+    "CnBlogMovil.dc.html",
+    "CnNewsMovil.dc.html",
+    "CnServiciosMovil.dc.html",
+    "PgAcercaMovil.dc.html",
+    "AdPoliticasMovil.dc.html",
+    "AdSaldoMovil.dc.html",
+    "AdDetalleMovil.dc.html",
+    "AdPaso3Movil.dc.html",
+    "AdPaso2Movil.dc.html",
+    "CtaVaciosMovil.dc.html",
+    "CtaMantenimientoMovil.dc.html",
+    "FinGananciasMovil.dc.html",
+    "FinFacturasMovil.dc.html",
+    "PgIntegracionesMovil.dc.html",
+    "PgReportesMovil.dc.html",
+    "CtaMercadoMovil.dc.html",
+    "CtaSuscripcionMovil.dc.html",
+    "CtaEquipoMovil.dc.html",
+    "CtaPrivacidadMovil.dc.html",
+    "CtaPreferenciasMovil.dc.html",
+    "FinRetiroMovil.dc.html",
+    "AdPaso1Movil.dc.html",
+    "CtaAnunciosMovil.dc.html",
+    "PgPlaneadorMovil.dc.html",
+    "PgMisPubsMovil.dc.html",
+    "FinLinkAporteMovil.dc.html",
+    "FinHistorialMovil.dc.html",
+    "FinMetodosMovil.dc.html",
+    "Cta404Movil.dc.html",
+    "CtaMentoriaMovil.dc.html",
+    "CtaReservacionesMovil.dc.html",
+    "CtaNotificacionesMovil.dc.html",
+    "CtaSeguridadMovil.dc.html",
+    "CtaVerificacionMovil.dc.html",
+    "CtaPerfilMovil.dc.html",
+    "CnBoContenido.dc.html",
+    "CnBoCatalogo.dc.html",
+    "CnColeccion.dc.html",
+    "CnCommunity.dc.html",
+    "CnBlog.dc.html",
+    "CnNews.dc.html",
+    "CnServicios.dc.html",
+    "PgReservasProvMovil.dc.html",
+    "PgCancelarMovil.dc.html",
+    "PgResenaMovil.dc.html",
+    "PgDetalleReservaMovil.dc.html",
+    "PgCotizacionMovil.dc.html",
+    "PgAcerca.dc.html",
+    "PgReportes.dc.html",
+    "PgIntegraciones.dc.html",
+    "PgPlaneador.dc.html",
+    "PgMisPubs.dc.html",
+    "PgCancelar.dc.html",
+    "PgResena.dc.html",
+    "PgReservasProv.dc.html",
+    "PgDetalleReserva.dc.html",
+    "PgCotizacion.dc.html",
+    "AdPaso1.dc.html",
+    "AdPaso2.dc.html",
+    "AdPaso3.dc.html",
+    "AdDetalle.dc.html",
+    "AdSaldo.dc.html",
+    "AdPoliticas.dc.html",
+    "AdBoAds.dc.html",
+    "FinCheckoutMovil.dc.html",
+    "FinApMovil.dc.html",
+    "FinBoPagos.dc.html",
+    "FinGanancias.dc.html",
+    "FinFacturas.dc.html",
+    "FinRetiro.dc.html",
+    "FinAporta.dc.html",
+    "FinLinkAporte.dc.html",
+    "FinHistorial.dc.html",
+    "FinMetodos.dc.html",
+    "FinCheckout.dc.html",
+    "CtaVacios.dc.html",
+    "CtaMantenimiento.dc.html",
+    "Cta404.dc.html",
+    "CtaMentoria.dc.html",
+    "CtaMercado.dc.html",
+    "CtaAnuncios.dc.html",
+    "CtaPrivacidad.dc.html",
+    "CtaSuscripcion.dc.html",
+    "CtaEquipo.dc.html",
+    "CtaReservaciones.dc.html",
+    "CtaNotificaciones.dc.html",
+    "CtaPreferencias.dc.html",
+    "CtaSeguridad.dc.html",
+    "CtaVerificacion.dc.html",
+    "CtaPerfil.dc.html",
+    "PlantillasSMS.dc.html",
+    "PlantillasPush.dc.html",
+    "EmailSuspension.dc.html",
+    "EmailResena.dc.html",
+    "EmailCancelacion.dc.html",
+    "EmailAportacion.dc.html",
+    "EmailRecibo.dc.html",
+    "EmailRecordatorio.dc.html",
+    "EmailReserva.dc.html",
+    "EmailCotizacion.dc.html",
+    "EmailCodigo.dc.html",
+    "EmailBienvenida.dc.html",
+    "BoLogs.dc.html",
+    "BoAnalytics.dc.html",
+    "BoParametros.dc.html",
+    "BoComisiones.dc.html",
+    "BoPlaneadores.dc.html",
+    "BoProveedores.dc.html",
+    "BoUsuarios.dc.html",
+    "BoDisputas.dc.html",
+    "BoModeracion.dc.html",
+    "BoKYC.dc.html",
+    "RegistroMovil.dc.html",
+    "Registro.dc.html",
+    "PlanOnb3Movil.dc.html",
+    "PlanOnb2Movil.dc.html",
+    "PlanOnb3.dc.html",
+    "PlanOnb2.dc.html",
+    "ProvOnb2.dc.html",
+    "ProvOnb3.dc.html",
+    "ProvOnb2Movil.dc.html",
+    "ProvOnb3Movil.dc.html",
+    "SistemaDiseno.dc.html",
+    "Onboarding2.dc.html",
+    "Onboarding3.dc.html",
+    "Onboarding2Movil.dc.html",
+    "Onboarding3Movil.dc.html",
+    "FavoritosMovil.dc.html",
+    "PerfilProveedorMovil.dc.html",
+    "MensajesMovil.dc.html",
+    "CalendarioMovil.dc.html",
+    "DashboardMovil.dc.html",
+    "PlanMovil.dc.html",
+    "ResultadosMovil.dc.html",
+    "LegalMovil.dc.html",
+    "HomeSesionMovil.dc.html",
+    "RecompensasMovil.dc.html",
+    "AyudaMovil.dc.html",
+    "FinanzasMovil.dc.html",
+    "BackofficeMovil.dc.html",
+    "CrearMovil.dc.html",
+    "DetalleMovil.dc.html",
+    "Legal.dc.html",
+    "HomeSesion.dc.html",
+    "Favoritos.dc.html",
+    "Recompensas.dc.html",
+    "Ayuda.dc.html",
+    "Finanzas.dc.html",
+    "PerfilProveedor.dc.html",
+    "Backoffice.dc.html",
+    "Mensajes.dc.html",
+    "CrearPublicacion.dc.html",
+    "Calendario.dc.html",
+    "DashboardProveedor.dc.html",
+    "Plan.dc.html",
+    "Detalle.dc.html",
+    "Resultados.dc.html",
+    "Onboarding.dc.html",
+    "OnboardingMovil.dc.html",
+    "Main.dc.html",
+    "Componentes.dc.html",
+    "Home.dc.html",
+    "App.dc.html",
+    "Login.dc.html",
+    "LoginMovil.dc.html",
+    "Verificacion.dc.html"
+  ],
+  "pages": [],
+  "title": "Vibe Planners — Logo, Home y Componentes"
+}

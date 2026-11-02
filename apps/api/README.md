@@ -31,18 +31,27 @@
 $ npm install
 ```
 
+## Environment Variables
+
+The API environment inventory, required/default behavior, Doppler configuration for `dev`, `qa`, and `prod`, and the encrypted backup and recovery procedure are documented in the [environment variables guide](../../docs/environment-variables.md).
+
+`apps/api/.env.example` is a template with non-functional placeholders, not a source of credentials. Do not commit real secrets or copy production values into other environments.
+
+Install the Doppler CLI for your operating system, authenticate with `doppler login`, then run the API from this directory with an explicit configuration:
+
+```powershell
+# Windows CLI installation
+winget install Doppler.doppler
+
+# Local development
+doppler run --project vibe-planners --config dev -- npm run start:dev
+```
+
+Use the linked guide for QA and production commands and access requirements.
+
 ## Compile and run the project
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
+Use the `start`, `start:dev`, and `start:prod` npm scripts with the environment selection documented above.
 
 ## Run tests
 
