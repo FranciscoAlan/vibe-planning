@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Post,
   Req,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
@@ -71,6 +72,16 @@ export class IdentityController {
   @HttpCode(HttpStatus.OK)
   login(@Body() body: unknown) {
     return this.identity.login(this.parseBody(loginWithCredentialsSchema, body));
+  }
+
+  @Get('organizations')
+  @UseGuards(JwtAuthGuard)
+  getOrganizations(@Req() request: AuthenticatedRequest) {
+    const userId = request.user?.sub;
+    if (!userId) {
+      throw new UnauthorizedException('Authenticated identity is missing');
+    }
+    return this.identity.getOrganizations(userId);
   }
 
   @Post('phone/challenge')

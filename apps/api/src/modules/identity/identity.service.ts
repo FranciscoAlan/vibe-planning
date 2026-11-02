@@ -133,6 +133,28 @@ export class IdentityService {
     return this.completePrimaryAuthentication(user);
   }
 
+  async getOrganizations(userId: string) {
+    const memberships = await this.prisma.organizationMembership.findMany({
+      where: {
+        userId,
+        role: {
+          in: [DatabaseOrganizationRole.OWNER, DatabaseOrganizationRole.PROVIDER],
+        },
+      },
+      select: {
+        role: true,
+        tenant: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return memberships.map(({ role, tenant }) => ({
+      id: tenant.id,
+      name: tenant.name,
+      role,
+    }));
+  }
+
   async requestPhoneChallenge(input: RequestPhoneChallengeInput) {
     const purpose =
       input.purpose === ChallengePurpose.PHONE_LOGIN

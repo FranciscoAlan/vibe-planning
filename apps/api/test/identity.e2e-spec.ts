@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { JwtService } from '@nestjs/jwt';
 import { authenticator } from 'otplib';
 import request from 'supertest';
 import { App } from 'supertest/types';
@@ -44,6 +45,7 @@ function matches(row: Row, where: Row = {}): boolean {
       return Object.entries(expected).every(([operator, value]) => {
         const actualDate = actual instanceof Date ? actual.getTime() : actual;
         const expectedDate = value instanceof Date ? value.getTime() : value;
+        if (operator === 'in') return Array.isArray(value) && value.includes(actual);
         if (operator === 'gt') return actualDate > (expectedDate as number);
         if (operator === 'gte') return actualDate >= (expectedDate as number);
         if (operator === 'lt') return actualDate < (expectedDate as number);
@@ -184,6 +186,17 @@ function createMemoryPrisma() {
   };
 
   const membershipDelegate = {
+    findMany: vi.fn(async ({ where, select }: { where: Row; select?: Row }) =>
+      state.memberships
+        .filter((membership) => matches(membership, where))
+        .map((membership) => {
+          if (select?.tenant) {
+            const tenant = state.tenants.find((candidate) => candidate.id === membership.tenantId);
+            return { role: membership.role, tenant };
+          }
+          return membership;
+        }),
+    ),
     findFirst: vi.fn(
       async ({ where }: { where: Row }) =>
         state.memberships.find((membership) => matches(membership, where)) ?? null,
@@ -279,6 +292,56 @@ describe('Identity flows (e2e)', () => {
 
   afterEach(async () => {
     await app?.close();
+  });
+
+  it('requires authentication and returns only the current user eligible organizations', async () => {
+    state.users.push(
+      { id: 'user-a', twoFactorEnabled: true },
+      { id: 'user-b', twoFactorEnabled: false },
+    );
+    state.tenants.push(
+      { id: 'tenant-a-owner', name: 'Estudio Norte' },
+      { id: 'tenant-a-admin', name: 'Administración Norte' },
+      { id: 'tenant-b-provider', name: 'Música Viva' },
+    );
+    state.memberships.push(
+      { userId: 'user-a', tenantId: 'tenant-a-owner', role: 'OWNER' },
+      { userId: 'user-a', tenantId: 'tenant-a-admin', role: 'ADMIN' },
+      { userId: 'user-b', tenantId: 'tenant-b-provider', role: 'PROVIDER' },
+    );
+    state.sessions.push(
+      {
+        id: 'session-a',
+        userId: 'user-a',
+        revokedAt: null,
+        expiresAt: new Date(Date.now() + 60_000),
+        twoFactorVerified: true,
+      },
+      {
+        id: 'session-b',
+        userId: 'user-b',
+        revokedAt: null,
+        expiresAt: new Date(Date.now() + 60_000),
+        twoFactorVerified: false,
+      },
+    );
+
+    const jwt = app!.get(JwtService);
+    const tokenA = jwt.sign({ sub: 'user-a', sessionId: 'session-a' });
+    const tokenB = jwt.sign({ sub: 'user-b', sessionId: 'session-b' });
+    const http = request(app!.getHttpServer());
+
+    await http.get('/identity/organizations').expect(401);
+    await http
+      .get('/identity/organizations')
+      .set('Authorization', `Bearer ${tokenA}`)
+      .expect(200)
+      .expect([{ id: 'tenant-a-owner', name: 'Estudio Norte', role: 'OWNER' }]);
+    await http
+      .get('/identity/organizations')
+      .set('Authorization', `Bearer ${tokenB}`)
+      .expect(200)
+      .expect([{ id: 'tenant-b-provider', name: 'Música Viva', role: 'PROVIDER' }]);
   });
 
   it('registers, verifies, recovers credentials, creates an organization and enforces admin TOTP', async () => {

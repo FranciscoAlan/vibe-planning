@@ -37,6 +37,7 @@ describe('IdentityService credential flows', () => {
     organizationMembership: {
       create: ReturnType<typeof vi.fn>;
       findFirst: ReturnType<typeof vi.fn>;
+      findMany: ReturnType<typeof vi.fn>;
     };
     $transaction: ReturnType<typeof vi.fn>;
   };
@@ -73,6 +74,7 @@ describe('IdentityService credential flows', () => {
       organizationMembership: {
         create: vi.fn(),
         findFirst: vi.fn().mockResolvedValue(null),
+        findMany: vi.fn(),
       },
       $transaction: vi.fn(),
     };
@@ -98,6 +100,29 @@ describe('IdentityService credential flows', () => {
       smsSender as unknown as IdentitySmsSender,
       twoFactor as never,
     );
+  });
+
+  it('lists only the authenticated user organizations with OWNER or PROVIDER membership', async () => {
+    prismaMock.organizationMembership.findMany.mockResolvedValue([
+      { role: 'OWNER', tenant: { id: 'tenant-owner', name: 'Estudio Norte' } },
+      { role: 'PROVIDER', tenant: { id: 'tenant-provider', name: 'Música Viva' } },
+    ]);
+
+    await expect(service.getOrganizations('user-id')).resolves.toEqual([
+      { id: 'tenant-owner', name: 'Estudio Norte', role: 'OWNER' },
+      { id: 'tenant-provider', name: 'Música Viva', role: 'PROVIDER' },
+    ]);
+    expect(prismaMock.organizationMembership.findMany).toHaveBeenCalledWith({
+      where: {
+        userId: 'user-id',
+        role: { in: ['OWNER', 'PROVIDER'] },
+      },
+      select: {
+        role: true,
+        tenant: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
   });
 
   it('hashes passwords and creates a pending account with an email challenge', async () => {
