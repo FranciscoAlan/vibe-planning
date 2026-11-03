@@ -1,6 +1,6 @@
 # SPEC 07 — Sesión web y selección de organización
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** SPEC 04, SPEC 06
 > **Fecha:** 2026-11-02
 > **Objetivo:** Integrar el inicio de sesión web de proveedores con la API de identidad mediante cookies seguras, selección de organización y acceso protegido al dashboard.
@@ -49,18 +49,18 @@ Las cookies usan `HttpOnly`, `SameSite=Lax`, `Path=/` y `Secure` en producción,
 
 ## Acceptance criteria
 
-- [ ] `GET /identity/organizations` exige autenticación y solo devuelve las membresías `OWNER` o `PROVIDER` del usuario autenticado.
-- [ ] El inicio de sesión válido establece cookies `HttpOnly`; ni el cuerpo de respuesta ni `localStorage` exponen tokens.
-- [ ] Si la API solicita TOTP, la web permite verificar el código y no crea una sesión antes de una verificación correcta.
-- [ ] Las cookies respetan las duraciones configuradas, `SameSite=Lax` y `Secure` en producción.
-- [ ] Una sola organización se selecciona automáticamente; varias muestran un selector y permiten cambiar la organización desde el dashboard.
-- [ ] Las operaciones organizacionales incluyen el tenant activo y una organización no autorizada es rechazada por la API.
-- [ ] Una cuenta sin membresías aptas ve un estado explicativo y puede cerrar sesión.
-- [ ] Una sesión expirada se renueva con rotación y se reintenta como máximo una vez; si la renovación falla, se limpia la sesión y se muestra el error.
-- [ ] `/dashboard` redirige a `/login` si no existe una sesión válida.
-- [ ] Cerrar sesión revoca la sesión en la API y elimina las cookies; los errores de revocación se notifican.
-- [ ] Los formularios y estados de carga, error y ausencia de organizaciones son accesibles y están redactados en español.
-- [ ] Las pruebas cubren los flujos anteriores sin credenciales reales ni servicios externos.
+- [x] `GET /identity/organizations` exige autenticación y solo devuelve las membresías `OWNER` o `PROVIDER` del usuario autenticado.
+- [x] El inicio de sesión válido establece cookies `HttpOnly`; ni el cuerpo de respuesta ni `localStorage` exponen tokens.
+- [x] Si la API solicita TOTP, la web permite verificar el código y no crea una sesión antes de una verificación correcta.
+- [x] Las cookies respetan las duraciones configuradas, `SameSite=Lax` y `Secure` en producción.
+- [x] Una sola organización se selecciona automáticamente; varias muestran un selector y permiten cambiar la organización desde el dashboard.
+- [x] Las operaciones organizacionales incluyen el tenant activo y una organización no autorizada es rechazada por la API.
+- [x] Una cuenta sin membresías aptas ve un estado explicativo y puede cerrar sesión.
+- [x] Una sesión expirada se renueva con rotación y se reintenta como máximo una vez; si la renovación falla, se limpia la sesión y se muestra el error.
+- [x] `/dashboard` redirige a `/login` si no existe una sesión válida.
+- [x] Cerrar sesión revoca la sesión en la API y elimina las cookies; los errores de revocación se notifican.
+- [x] Los formularios y estados de carga, error y ausencia de organizaciones son accesibles y están redactados en español.
+- [x] Las pruebas cubren los flujos anteriores sin credenciales reales ni servicios externos.
 
 ## Decisions
 

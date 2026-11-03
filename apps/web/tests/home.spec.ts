@@ -481,20 +481,30 @@ test('rendered text, placeholders and control indicators meet contrast requireme
   ).toEqual([]);
 });
 
-for (const [route, heading] of [
-  ['/login', 'Welcome back'],
-  ['/dashboard', 'Event timeline'],
-  ['/account', 'Your account'],
-] as const) {
-  test(`preserves the existing English view at ${route}`, async ({ page }) => {
-    const response = await page.goto(route);
-    expect(response?.ok()).toBe(true);
-    await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
-    await expect(page.locator('main')).toHaveAttribute('lang', 'en');
-    const homeLink =
-      route === '/login'
-        ? page.getByRole('link', { name: 'Return to overview', exact: true })
-        : page.getByRole('link', { name: 'Vibe Planners', exact: true });
-    await expect(homeLink).toHaveAttribute('href', '/');
-  });
-}
+test('shows the Spanish login view', async ({ page }) => {
+  const response = await page.goto('/login');
+  expect(response?.ok()).toBe(true);
+  await expect(page.getByRole('heading', { name: 'Inicia sesión', exact: true })).toBeVisible();
+  await expect(page.locator('main')).toHaveAttribute('lang', 'es');
+  await expect(page.getByRole('link', { name: 'Volver al inicio', exact: true })).toHaveAttribute(
+    'href',
+    '/',
+  );
+});
+
+test('redirects unauthenticated dashboard requests to login', async ({ page }) => {
+  await page.goto('/dashboard');
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole('heading', { name: 'Inicia sesión', exact: true })).toBeVisible();
+});
+
+test('preserves the existing English account view', async ({ page }) => {
+  const response = await page.goto('/account');
+  expect(response?.ok()).toBe(true);
+  await expect(page.getByRole('heading', { name: 'Your account', exact: true })).toBeVisible();
+  await expect(page.locator('main')).toHaveAttribute('lang', 'en');
+  await expect(page.getByRole('link', { name: 'Vibe Planners', exact: true })).toHaveAttribute(
+    'href',
+    '/',
+  );
+});
