@@ -2,9 +2,19 @@ import 'server-only';
 
 import { createHash } from 'node:crypto';
 import {
+  createOrganizationSchema,
   loginWithCredentialsSchema,
+  registerWithCredentialsSchema,
+  requestEmailVerificationSchema,
+  verifyChallengeSchema,
+  verifyPhoneChallengeSchema,
   verifyTwoFactorSchema,
+  type CreateOrganizationInput,
   type LoginWithCredentialsInput,
+  type RegisterWithCredentialsInput,
+  type RequestEmailVerificationInput,
+  type VerifyChallengeInput,
+  type VerifyPhoneChallengeInput,
   type VerifyTwoFactorInput,
 } from '@vibe-planners/shared-validations';
 
@@ -17,6 +27,11 @@ export type ProviderOrganization = {
   id: string;
   name: string;
   role: 'OWNER' | 'PROVIDER';
+};
+
+export type CreatedProviderOrganization = {
+  id: string;
+  name: string;
 };
 
 export class IdentityApiError extends Error {
@@ -100,6 +115,84 @@ function requireSessionTokens(payload: unknown): SessionTokens {
   }
 
   return { accessToken: payload.accessToken, refreshToken: payload.refreshToken };
+}
+
+function stringProperty(payload: unknown, property: string): string | undefined {
+  if (typeof payload !== 'object' || payload === null) return undefined;
+  const value = (payload as Record<string, unknown>)[property];
+  return typeof value === 'string' ? value : undefined;
+}
+
+export async function registerWithCredentials(
+  input: RegisterWithCredentialsInput,
+): Promise<{ emailVerificationChallengeId: string }> {
+  const payload = await requestApi<unknown>('identity/register', {
+    method: 'POST',
+    body: JSON.stringify(registerWithCredentialsSchema.parse(input)),
+  });
+  const emailVerificationChallengeId = stringProperty(payload, 'emailVerificationChallengeId');
+  if (!emailVerificationChallengeId) {
+    throw new IdentityApiError('La API no devolvió el desafío de verificación del email.', 502);
+  }
+  return { emailVerificationChallengeId };
+}
+
+export async function requestEmailVerification(
+  input: RequestEmailVerificationInput,
+): Promise<string> {
+  const payload = await requestApi<unknown>('identity/email/verification/request', {
+    method: 'POST',
+    body: JSON.stringify(requestEmailVerificationSchema.parse(input)),
+  });
+  const challengeId = stringProperty(payload, 'challengeId');
+  if (!challengeId) {
+    throw new IdentityApiError('La API no devolvió un identificador de desafío válido.', 502);
+  }
+  return challengeId;
+}
+
+export async function verifyEmailChallenge(input: VerifyChallengeInput) {
+  return requestApi('identity/email/verification/confirm', {
+    method: 'POST',
+    body: JSON.stringify(verifyChallengeSchema.parse(input)),
+  });
+}
+
+export async function verifyPhoneChallenge(input: VerifyPhoneChallengeInput) {
+  return requestApi('identity/phone/verify', {
+    method: 'POST',
+    body: JSON.stringify(verifyPhoneChallengeSchema.parse(input)),
+  });
+}
+
+export async function createProviderOrganization(
+  accessToken: string,
+  input: CreateOrganizationInput,
+): Promise<CreatedProviderOrganization> {
+  const payload = await requestApi<unknown>('identity/organizations', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify(createOrganizationSchema.parse(input)),
+  });
+
+  if (typeof payload !== 'object' || payload === null) {
+    throw new IdentityApiError('La API devolvió una organización inválida.', 502);
+  }
+  const organization = 'organization' in payload ? payload.organization : undefined;
+  const membership = 'membership' in payload ? payload.membership : undefined;
+  const organizationId = stringProperty(organization, 'id');
+  const organizationName = stringProperty(organization, 'name');
+  const membershipRole = stringProperty(membership, 'role');
+  const membershipTenantId = stringProperty(membership, 'tenantId');
+  if (
+    !organizationId ||
+    !organizationName ||
+    membershipRole !== 'OWNER' ||
+    membershipTenantId !== organizationId
+  ) {
+    throw new IdentityApiError('La API devolvió una organización inválida.', 502);
+  }
+  return { id: organizationId, name: organizationName };
 }
 
 export async function loginWithCredentials(input: LoginWithCredentialsInput) {

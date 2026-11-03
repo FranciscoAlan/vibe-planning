@@ -242,10 +242,11 @@ export class IdentityService {
   }
 
   async requestEmailVerification(input: RequestEmailVerificationInput) {
+    let challengeId = randomUUID();
     const user = await this.prisma.user.findUnique({ where: { email: input.email } });
     if (user && !user.emailVerifiedAt) {
       try {
-        await this.createEmailChallenge(
+        challengeId = await this.createEmailChallenge(
           user.id,
           input.email,
           DatabaseChallengePurpose.EMAIL_VERIFICATION,
@@ -259,7 +260,10 @@ export class IdentityService {
       }
     }
 
-    return { message: 'If the account can receive a verification email, one will be sent.' };
+    return {
+      message: 'If the account can receive a verification email, one will be sent.',
+      challengeId,
+    };
   }
 
   async verifyEmail(input: VerifyChallengeInput) {

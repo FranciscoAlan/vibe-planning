@@ -201,6 +201,59 @@ describe('IdentityService credential flows', () => {
     expect(smsSender.sendCode).toHaveBeenCalledOnce();
   });
 
+  it('returns the email verification challenge id with a generic response', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: 'user-id', emailVerifiedAt: null });
+    prismaMock.verificationChallenge.findFirst.mockResolvedValue(null);
+    prismaMock.verificationChallenge.create.mockResolvedValue({ id: 'email-challenge-id' });
+
+    await expect(service.requestEmailVerification({ email: 'host@example.com' })).resolves.toEqual({
+      message: 'If the account can receive a verification email, one will be sent.',
+      challengeId: 'email-challenge-id',
+    });
+    expect(emailSender.sendCode).toHaveBeenCalledWith(
+      expect.objectContaining({ challengeId: 'email-challenge-id' }),
+    );
+  });
+
+  it('returns an unusable email challenge id when no eligible account exists', async () => {
+    prismaMock.user.findUnique.mockResolvedValue(null);
+    prismaMock.verificationChallenge.findFirst.mockResolvedValue(null);
+
+    const result = await service.requestEmailVerification({ email: 'unknown@example.com' });
+
+    expect(result).toEqual({
+      message: 'If the account can receive a verification email, one will be sent.',
+      challengeId: expect.stringMatching(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      ),
+    });
+    await expect(
+      service.verifyEmail({ challengeId: result.challengeId, code: '123456' }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+    expect(emailSender.sendCode).not.toHaveBeenCalled();
+  });
+
+  it('does not expose a failed email challenge id when delivery fails', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({ id: 'user-id', emailVerifiedAt: null });
+    prismaMock.verificationChallenge.findFirst.mockResolvedValue(null);
+    prismaMock.verificationChallenge.create.mockResolvedValue({ id: 'unsent-challenge-id' });
+    prismaMock.verificationChallenge.updateMany.mockResolvedValue({ count: 1 });
+    emailSender.sendCode.mockRejectedValue(new Error('email provider unavailable'));
+
+    const result = await service.requestEmailVerification({ email: 'host@example.com' });
+
+    expect(result.challengeId).not.toBe('unsent-challenge-id');
+    expect(result.challengeId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+    expect(prismaMock.verificationChallenge.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'unsent-challenge-id', consumedAt: null },
+        data: { consumedAt: expect.any(Date) },
+      }),
+    );
+  });
+
   it('verifies a phone-login challenge and issues an identity-only access token', async () => {
     const code = '012345';
     const user = {
