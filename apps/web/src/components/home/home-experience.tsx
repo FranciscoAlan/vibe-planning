@@ -7,7 +7,6 @@ import type { SealVariant } from '@vibe-planners/ui';
 import { homeCategories, homeDemoListings } from './home-demo-data';
 import type { HomeCategoryId, HomeSearchValues } from './home-demo-data';
 import { HomeNav } from './home-nav';
-import type { HomeUnavailableAction } from './home-nav';
 import { HomeSearch } from './home-search';
 
 const emptySearch: HomeSearchValues = {
@@ -34,7 +33,6 @@ export function HomeExperience() {
     categoryId: '',
   });
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(() => new Set());
-  const [notice, setNotice] = useState<{ message: string; sequence: number } | null>(null);
   const cityFilter = normalizeCity(filters.city);
   const listings = homeDemoListings.filter(
     (listing) =>
@@ -68,32 +66,9 @@ export function HomeExperience() {
     setFilters({ city: '', categoryId: '' });
   }
 
-  function showUnavailableAction(action: HomeUnavailableAction) {
-    const message =
-      action === 'provider'
-        ? 'El alta de proveedores todav\u00eda no est\u00e1 disponible. No se envi\u00f3 ninguna solicitud.'
-        : 'El registro todav\u00eda no est\u00e1 disponible. No se cre\u00f3 ninguna cuenta.';
-    setNotice((previous) => ({ message, sequence: (previous?.sequence ?? 0) + 1 }));
-  }
-
   return (
     <div lang="es" className="min-h-screen bg-vibe-cream font-jakarta text-vibe-plum">
-      <HomeNav onUnavailableAction={showUnavailableAction} />
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="mx-auto max-w-6xl px-5 sm:px-8"
-      >
-        {notice && (
-          <p
-            key={notice.sequence}
-            className="mt-4 border-l-4 border-vibe-raspberry bg-white p-4 text-sm"
-          >
-            {notice.message}
-          </p>
-        )}
-      </div>
+      <HomeNav />
       <main className="mx-auto max-w-6xl space-y-8 px-5 py-8 sm:px-8 sm:py-12">
         <section aria-labelledby="home-heading" className="space-y-6">
           <div className="max-w-3xl space-y-4">

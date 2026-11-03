@@ -12,11 +12,15 @@ import {
   selectOrganizationFromBrowser,
   SessionApiError,
 } from '@/services/session.api.service';
+import {
+  createProviderOrganization,
+  RegistrationApiError,
+} from '@/services/registration.api.service';
 
 type DashboardState =
   | { status: 'loading' }
   | { status: 'ready'; organizations: ProviderOrganization[]; activeOrganizationId: string | null }
-  | { status: 'empty' }
+  | { status: 'empty'; message?: string }
   | { status: 'error'; message: string };
 
 export function ProviderDashboard() {
@@ -24,6 +28,9 @@ export function ProviderDashboard() {
   const [state, setState] = useState<DashboardState>({ status: 'loading' });
   const [selectionBusy, setSelectionBusy] = useState(false);
   const [logoutBusy, setLogoutBusy] = useState(false);
+  const [organizationName, setOrganizationName] = useState('');
+  const [organizationBusy, setOrganizationBusy] = useState(false);
+  const [organizationError, setOrganizationError] = useState('');
   const initialLoadStarted = useRef(false);
 
   const loadOrganizations = useCallback(async () => {
@@ -101,6 +108,37 @@ export function ProviderDashboard() {
     }
   }
 
+  async function handleCreateOrganization(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setOrganizationError('');
+    setOrganizationBusy(true);
+    try {
+      try {
+        await createProviderOrganization(organizationName.trim());
+      } catch (error) {
+        if (!(error instanceof RegistrationApiError && error.status === 401)) throw error;
+        await refreshFromBrowser();
+        await createProviderOrganization(organizationName.trim());
+      }
+      setOrganizationName('');
+      setState({ status: 'loading' });
+      await loadOrganizations();
+    } catch (error) {
+      if (error instanceof SessionApiError && error.status === 401) {
+        router.replace('/login?error=session-expired');
+        router.refresh();
+        return;
+      }
+      setOrganizationError(
+        error instanceof RegistrationApiError || error instanceof SessionApiError
+          ? error.message
+          : 'No fue posible crear la organización. Inténtalo de nuevo.',
+      );
+    } finally {
+      setOrganizationBusy(false);
+    }
+  }
+
   async function handleLogout() {
     setLogoutBusy(true);
     try {
@@ -156,10 +194,35 @@ export function ProviderDashboard() {
               No tienes una organización proveedora
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-vibe-plum/75">
-              Tu cuenta inició sesión correctamente, pero todavía no pertenece a una organización
-              como propietaria o proveedora. Contacta al administrador de tu organización para
-              obtener acceso.
+              Crea una organización para configurar tu espacio de proveedor.
             </p>
+            <form className="mt-5 max-w-lg space-y-4" onSubmit={handleCreateOrganization}>
+              <div>
+                <label
+                  className="mb-2 block text-sm font-semibold text-vibe-plum"
+                  htmlFor="new-organization-name"
+                >
+                  Nombre de la organización
+                </label>
+                <input
+                  autoComplete="organization"
+                  className="min-h-12 w-full rounded-xl border border-vibe-sand px-4 text-vibe-plum outline-none focus-visible:ring-2 focus-visible:ring-vibe-raspberry"
+                  id="new-organization-name"
+                  maxLength={120}
+                  onChange={(event) => setOrganizationName(event.target.value)}
+                  required
+                  value={organizationName}
+                />
+              </div>
+              {organizationError && (
+                <p className="text-sm text-red-800" role="alert">
+                  {organizationError}
+                </p>
+              )}
+              <Button loading={organizationBusy} type="submit">
+                Crear organización
+              </Button>
+            </form>
           </div>
         )}
 

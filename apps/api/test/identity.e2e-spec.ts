@@ -344,6 +344,42 @@ describe('Identity flows (e2e)', () => {
       .expect([{ id: 'tenant-b-provider', name: 'Música Viva', role: 'PROVIDER' }]);
   });
 
+  it('returns the same generic email verification response shape for eligible and unknown emails', async () => {
+    await request(app!.getHttpServer())
+      .post('/identity/register')
+      .send({
+        email: 'host@example.com',
+        phone: '+525512345678',
+        password: 'initial-password',
+      })
+      .expect(201);
+
+    const eligible = await request(app!.getHttpServer())
+      .post('/identity/email/verification/request')
+      .send({ email: 'host@example.com' })
+      .expect(200);
+    const unknown = await request(app!.getHttpServer())
+      .post('/identity/email/verification/request')
+      .send({ email: 'unknown@example.com' })
+      .expect(200);
+
+    expect(eligible.body.message).toBe(
+      'If the account can receive a verification email, one will be sent.',
+    );
+    expect(unknown.body.message).toBe(eligible.body.message);
+    expect(Object.keys(unknown.body).sort()).toEqual(Object.keys(eligible.body).sort());
+    expect(eligible.body.challengeId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+    expect(unknown.body.challengeId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+    await request(app!.getHttpServer())
+      .post('/identity/email/verification/confirm')
+      .send({ challengeId: unknown.body.challengeId, code: '123456' })
+      .expect(401);
+  });
+
   it('registers, verifies, recovers credentials, creates an organization and enforces admin TOTP', async () => {
     const registration = await request(app!.getHttpServer())
       .post('/identity/register')

@@ -169,7 +169,7 @@ test('favorites work with keyboard, survive filtering and reset, but disappear a
   await expect(page.locator('article')).toHaveCount(6);
 });
 
-test('pending actions announce their limits without navigation, API calls or storage changes', async ({
+test('registration links navigate without issuing API requests or changing storage', async ({
   page,
 }) => {
   const applicationRequests: string[] = [];
@@ -188,21 +188,12 @@ test('pending actions announce their limits without navigation, API calls or sto
     local: { ...localStorage },
     session: { ...sessionStorage },
   }));
-  await page.getByRole('button', { name: 'Registrarse', exact: true }).click();
-  const notice = page.getByRole('status').filter({ hasText: 'No se cre\u00f3 ninguna cuenta.' });
-  await expect(notice).toBeVisible();
-  await expect(notice).toHaveAttribute('aria-live', 'polite');
-  await expect(notice).toHaveAttribute('aria-atomic', 'true');
-  const originalMessage = await notice.locator('p').elementHandle();
-  await page.getByRole('button', { name: 'Registrarse', exact: true }).click();
-  await expect.poll(() => originalMessage?.evaluate((element) => element.isConnected)).toBe(false);
-  await page.getByRole('button', { name: 'Ser proveedor', exact: true }).click();
-  await expect(
-    page.getByRole('status').filter({ hasText: 'No se envi\u00f3 ninguna solicitud.' }),
-  ).toBeVisible();
-  await page.getByRole('button', { name: 'Locales', exact: true }).click();
-  await page.getByRole('button', { name: 'Restablecer filtros', exact: true }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await page.getByRole('link', { name: 'Registrarse', exact: true }).click();
+  await expect(page).toHaveURL(/\/register$/, { timeout: 15_000 });
+  await expect(page.getByRole('heading', { name: 'Crea tu cuenta de proveedor' })).toBeVisible();
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Ser proveedor', exact: true }).click();
+  await expect(page).toHaveURL(/\/register$/, { timeout: 15_000 });
   expect(
     await page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } })),
   ).toEqual(before);
@@ -215,9 +206,9 @@ test('keyboard navigation reaches named controls with visible focus and associat
   await page.goto('/');
   for (const control of [
     page.getByRole('link', { name: 'Vibe Planners, inicio', exact: true }),
-    page.getByRole('button', { name: 'Ser proveedor', exact: true }),
+    page.getByRole('link', { name: 'Ser proveedor', exact: true }),
     page.getByRole('link', { name: 'Iniciar sesi\u00f3n', exact: true }),
-    page.getByRole('button', { name: 'Registrarse', exact: true }),
+    page.getByRole('link', { name: 'Registrarse', exact: true }),
     page.getByRole('textbox', { name: 'Ciudad', exact: true }),
   ]) {
     await page.keyboard.press('Tab');
@@ -386,7 +377,6 @@ test('rendered text, placeholders and control indicators meet contrast requireme
 }, testInfo) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Locales', exact: true }).click();
-  await page.getByRole('button', { name: 'Registrarse', exact: true }).click();
   const measurements = await page.evaluate(() => {
     const canvas = document.createElement('canvas');
     canvas.width = 1;

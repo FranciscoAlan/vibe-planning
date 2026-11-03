@@ -1,15 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Button, Logo } from '@vibe-planners/ui';
+import { Logo } from '@vibe-planners/ui';
 
-export type HomeUnavailableAction = 'provider' | 'register';
-
-export type HomeNavProps = {
-  onUnavailableAction: (action: HomeUnavailableAction) => void;
-};
-
-export function HomeNav({ onUnavailableAction }: HomeNavProps) {
+export function HomeNav() {
   return (
     <header className="border-b border-vibe-sand">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-8">
@@ -21,18 +15,24 @@ export function HomeNav({ onUnavailableAction }: HomeNavProps) {
           <Logo />
         </Link>
         <nav aria-label={'Navegaci\u00f3n principal'} className="flex flex-wrap items-center gap-2">
-          <Button variant="quiet" type="button" onClick={() => onUnavailableAction('provider')}>
+          <Link
+            className="inline-flex min-h-[44px] items-center justify-center rounded-button px-4 py-2 text-sm font-semibold text-vibe-raspberry hover:bg-vibe-sand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vibe-plum"
+            href="/register"
+          >
             Ser proveedor
-          </Button>
+          </Link>
           <Link
             href="/login"
             className="inline-flex min-h-[44px] items-center justify-center rounded-button px-4 py-2 text-sm font-semibold text-vibe-plum hover:bg-vibe-sand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vibe-plum"
           >
             Iniciar sesi&oacute;n
           </Link>
-          <Button type="button" onClick={() => onUnavailableAction('register')}>
+          <Link
+            className="inline-flex min-h-[44px] items-center justify-center rounded-button bg-vibe-raspberry px-6 py-2 text-sm font-semibold text-white hover:bg-vibe-plum focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vibe-plum"
+            href="/register"
+          >
             Registrarse
-          </Button>
+          </Link>
         </nav>
       </div>
     </header>

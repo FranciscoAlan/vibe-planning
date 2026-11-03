@@ -152,6 +152,12 @@ export function LoginForm({ sessionExpired = false }: { sessionExpired?: boolean
       <Link className="mt-6 inline-block text-sm font-semibold text-vibe-raspberry" href="/">
         Volver al inicio
       </Link>
+      <p className="mt-4 text-sm text-vibe-plum/75">
+        ¿Aún no tienes cuenta?{' '}
+        <Link className="font-semibold text-vibe-raspberry" href="/register">
+          Regístrate
+        </Link>
+      </p>
     </section>
   );
 }

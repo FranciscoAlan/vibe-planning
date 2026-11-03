@@ -6,6 +6,7 @@ import {
   loginWithCredentialsSchema,
   registerWithCredentialsSchema,
   requestEmailVerificationSchema,
+  requestPhoneChallengeSchema,
   verifyChallengeSchema,
   verifyPhoneChallengeSchema,
   verifyTwoFactorSchema,
@@ -13,6 +14,7 @@ import {
   type LoginWithCredentialsInput,
   type RegisterWithCredentialsInput,
   type RequestEmailVerificationInput,
+  type RequestPhoneChallengeInput,
   type VerifyChallengeInput,
   type VerifyPhoneChallengeInput,
   type VerifyTwoFactorInput,
@@ -149,6 +151,13 @@ export async function requestEmailVerification(
     throw new IdentityApiError('La API no devolvió un identificador de desafío válido.', 502);
   }
   return challengeId;
+}
+
+export async function requestPhoneChallenge(input: RequestPhoneChallengeInput) {
+  return requestApi('identity/phone/challenge', {
+    method: 'POST',
+    body: JSON.stringify(requestPhoneChallengeSchema.parse(input)),
+  });
 }
 
 export async function verifyEmailChallenge(input: VerifyChallengeInput) {
